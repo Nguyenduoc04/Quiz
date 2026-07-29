@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Cập nhật thông tin cá nhân</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}" />
+</head>
+<body>
+
+<h2>Cập nhật thông tin tài khoản</h2>
+
+<!-- Thông báo thành công -->
+<div th:if="${successMessage}" class="success">
+    <p th:text="${successMessage}"></p>
+</div>
+
+<form th:action="@{/user/profile}" th:object="${userDTO}" method="post">
+
+    <!-- Khóa ID ẩn -->
+    <input type="hidden" th:field="*{id}" />
+
+    <!-- Tên đăng nhập (Chỉ đọc) -->
+    <div class="form-group">
+        <label>Tên đăng nhập:</label>
+        <input type="text" th:field="*{username}" readonly="readonly" class="input-readonly" />
+    </div>
+
+    <!-- Họ và tên -->
+    <div class="form-group">
+        <label>Họ và tên:</label>
+        <input type="text" th:field="*{fullName}" />
+        <div class="error" th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}"></div>
+    </div>
+
+    <!-- Email -->
+    <div class="form-group">
+        <label>Email:</label>
+        <input type="text" th:field="*{email}" />
+        <div class="error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
+    </div>
+
+    <button type="submit">Lưu thay đổi</button>
+</form>
+
+</body>
+</html>
