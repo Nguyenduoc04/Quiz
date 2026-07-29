@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org">
+
+<body>
+
+<aside th:fragment="sidebar"
+       class="admin-sidebar d-flex flex-column">
+
+    <!-- Logo -->
+    <div class="sidebar-logo">
+        <a th:href="@{/admin/dashboard}"
+           class="text-decoration-none text-white">
+
+            <i class="bi bi-patch-question-fill"></i>
+            <span>Quiz CodeGym</span>
+        </a>
+    </div>
+
+    <!-- Menu -->
+    <nav class="sidebar-menu flex-grow-1">
+
+        <p class="menu-title">QUẢN TRỊ HỆ THỐNG</p>
+
+        <a th:href="@{/admin/dashboard}"
+           class="sidebar-link">
+
+            <i class="bi bi-speedometer2"></i>
+            <span>Dashboard</span>
+        </a>
+
+        <a th:href="@{/admin/students}"
+           class="sidebar-link">
+
+            <i class="bi bi-mortarboard-fill"></i>
+            <span>Quản lý học viên</span>
+        </a>
+
+        <a th:href="@{/admin/teachers}"
+           class="sidebar-link">
+
+            <i class="bi bi-person-workspace"></i>
+            <span>Quản lý giáo viên</span>
+        </a>
+
+        <a th:href="@{/admin/teachers/pending}"
+           class="sidebar-link">
+
+            <i class="bi bi-person-check-fill"></i>
+            <span>Duyệt giáo viên</span>
+        </a>
+
+        <a th:href="@{/admin/users}"
+           class="sidebar-link">
+
+            <i class="bi bi-people-fill"></i>
+            <span>Quản lý tài khoản</span>
+        </a>
+
+        <p class="menu-title mt-4">HỆ THỐNG</p>
+
+        <a th:href="@{/admin/profile}"
+           class="sidebar-link">
+
+            <i class="bi bi-person-circle"></i>
+            <span>Thông tin cá nhân</span>
+        </a>
+
+    </nav>
+
+    <!-- Đăng xuất -->
+    <div class="sidebar-footer">
+
+        <form th:action="@{/logout}" method="post">
+
+            <button type="submit"
+                    class="btn btn-outline-light w-100">
+
+                <i class="bi bi-box-arrow-right me-2"></i>
+                Đăng xuất
+            </button>
+
+        </form>
+
+    </div>
+
+</aside>
+
+</body>
+</html>
