@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng ký - Quiz App</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            min-height: 100vh;
+            display: flex; align-items: center; justify-content: center;
+            padding: 1rem;
+        }
+        .card {
+            background: white; padding: 2.5rem; border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            width: 100%; max-width: 480px;
+        }
+        h2 { text-align: center; color: #333; margin-bottom: 1.5rem; font-size: 1.8rem; }
+        .form-group { margin-bottom: 1.1rem; }
+        label { display: block; margin-bottom: 0.4rem; color: #555; font-weight: 500; }
+        input {
+            width: 100%; padding: 0.75rem 1rem;
+            border: 2px solid #e0e0e0; border-radius: 8px;
+            font-size: 1rem; transition: border-color 0.3s;
+        }
+        input:focus { outline: none; border-color: #11998e; }
+        input.is-invalid { border-color: #e74c3c; }
+        .error-msg { color: #e74c3c; font-size: 0.82rem; margin-top: 0.3rem; }
+        .btn {
+            width: 100%; padding: 0.85rem;
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+            color: white; border: none; border-radius: 8px;
+            font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: 0.5rem;
+        }
+        .btn:hover { opacity: 0.9; }
+        .alert { padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 1rem; font-size: 0.9rem; }
+        .alert-danger { background: #fde8e8; color: #c0392b; border: 1px solid #f5c6cb; }
+        .text-center { text-align: center; margin-top: 1rem; color: #666; }
+        .text-center a { color: #11998e; text-decoration: none; font-weight: 600; }
+        .text-center a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+<div class="card">
+    <h2>📝 Đăng ký học viên</h2>
+
+    <!-- Lỗi business logic (username/email trùng, password không khớp) -->
+    <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+    <form th:action="@{/auth/register}" method="post" th:object="${userRegisterDTO}">
+
+        <div class="form-group">
+            <label for="fullName">Họ và tên <span style="color:red">*</span></label>
+            <input type="text" id="fullName" th:field="*{fullName}"
+                   th:class="${#fields.hasErrors('fullName')} ? 'is-invalid' : ''"
+                   placeholder="Nguyễn Văn A">
+            <div class="error-msg" th:if="${#fields.hasErrors('fullName')}"
+                 th:errors="*{fullName}"></div>
+        </div>
+
+        <div class="form-group">
+            <label for="email">Email <span style="color:red">*</span></label>
+            <input type="email" id="email" th:field="*{email}"
+                   th:class="${#fields.hasErrors('email')} ? 'is-invalid' : ''"
+                   placeholder="example@email.com">
+            <div class="error-msg" th:if="${#fields.hasErrors('email')}"
+                 th:errors="*{email}"></div>
+        </div>
+
+        <div class="form-group">
+            <label for="username">Tên đăng nhập <span style="color:red">*</span></label>
+            <input type="text" id="username" th:field="*{username}"
+                   th:class="${#fields.hasErrors('username')} ? 'is-invalid' : ''"
+                   placeholder="Tối thiểu 4 ký tự, chỉ chữ/số/gạch dưới">
+            <div class="error-msg" th:if="${#fields.hasErrors('username')}"
+                 th:errors="*{username}"></div>
+        </div>
+
+        <div class="form-group">
+            <label for="password">Mật khẩu <span style="color:red">*</span></label>
+            <input type="password" id="password" th:field="*{password}"
+                   th:class="${#fields.hasErrors('password')} ? 'is-invalid' : ''"
+                   placeholder="Tối thiểu 6 ký tự">
+            <div class="error-msg" th:if="${#fields.hasErrors('password')}"
+                 th:errors="*{password}"></div>
+        </div>
+
+        <div class="form-group">
+            <label for="confirmPassword">Xác nhận mật khẩu <span style="color:red">*</span></label>
+            <input type="password" id="confirmPassword" th:field="*{confirmPassword}"
+                   th:class="${#fields.hasErrors('confirmPassword')} ? 'is-invalid' : ''"
+                   placeholder="Nhập lại mật khẩu">
+            <div class="error-msg" th:if="${#fields.hasErrors('confirmPassword')}"
+                 th:errors="*{confirmPassword}"></div>
+        </div>
+
+        <button type="submit" class="btn">Đăng ký</button>
+    </form>
+
+    <div class="text-center">
+        Đã có tài khoản? <a th:href="@{/auth/login}">Đăng nhập</a>
+    </div>
+</div>
+</body>
+</html>

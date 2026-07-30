@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập - Quiz App</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .card {
+            background: white; padding: 2.5rem; border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            width: 100%; max-width: 420px;
+        }
+        h2 { text-align: center; color: #333; margin-bottom: 1.5rem; font-size: 1.8rem; }
+        .form-group { margin-bottom: 1.2rem; }
+        label { display: block; margin-bottom: 0.4rem; color: #555; font-weight: 500; }
+        input {
+            width: 100%; padding: 0.75rem 1rem;
+            border: 2px solid #e0e0e0; border-radius: 8px;
+            font-size: 1rem; transition: border-color 0.3s;
+        }
+        input:focus { outline: none; border-color: #667eea; }
+        .btn {
+            width: 100%; padding: 0.85rem;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white; border: none; border-radius: 8px;
+            font-size: 1rem; font-weight: 600; cursor: pointer;
+        }
+        .btn:hover { opacity: 0.9; }
+        .alert { padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 1rem; font-size: 0.9rem; }
+        .alert-danger  { background: #fde8e8; color: #c0392b; border: 1px solid #f5c6cb; }
+        .alert-success { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
+        .text-center { text-align: center; margin-top: 1rem; color: #666; }
+        .text-center a { color: #667eea; text-decoration: none; font-weight: 600; }
+        .text-center a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+<div class="card">
+    <h2>🔐 Đăng nhập</h2>
+
+    <div th:if="${param.error}" class="alert alert-danger">
+        Tên đăng nhập hoặc mật khẩu không đúng!
+    </div>
+    <div th:if="${param.logout}" class="alert alert-success">
+        Bạn đã đăng xuất thành công.
+    </div>
+    <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+
+    <form th:action="@{/auth/login}" method="post">
+        <div class="form-group">
+            <label for="username">Tên đăng nhập</label>
+            <input type="text" id="username" name="username"
+                   placeholder="Nhập tên đăng nhập" required>
+        </div>
+        <div class="form-group">
+            <label for="password">Mật khẩu</label>
+            <input type="password" id="password" name="password"
+                   placeholder="Nhập mật khẩu" required>
+        </div>
+        <button type="submit" class="btn">Đăng nhập</button>
+    </form>
+
+    <div class="text-center">
+        Chưa có tài khoản? <a th:href="@{/auth/register}">Đăng ký ngay</a>
+    </div>
+</div>
+</body>
+</html>

@@ -18,12 +18,22 @@ repositories {
 }
 
 dependencies {
+	// JPA (uncomment)
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	// Thymeleaf
 	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+	// Spring Security + Thymeleaf Security Dialect
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
+	// Web MVC
 	implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+	// Validation
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	// DevTools
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+	// MySQL (uncomment)
 	runtimeOnly 'com.mysql:mysql-connector-j'
+	// Test
 	testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
 	testImplementation 'org.springframework.boot:spring-boot-starter-thymeleaf-test'
 	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'

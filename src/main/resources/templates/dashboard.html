@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Quiz App</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; min-height: 100vh; }
+        nav {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            padding: 1rem 2rem;
+            display: flex; justify-content: space-between; align-items: center;
+            color: white;
+        }
+        nav h1 { font-size: 1.4rem; }
+        .nav-right { display: flex; align-items: center; gap: 1rem; }
+        .btn-logout {
+            background: rgba(255,255,255,0.2); color: white;
+            border: 1px solid rgba(255,255,255,0.4);
+            padding: 0.4rem 1rem; border-radius: 6px;
+            text-decoration: none; font-size: 0.9rem;
+        }
+        .btn-logout:hover { background: rgba(255,255,255,0.35); }
+        .container { max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
+        .welcome-card {
+            background: white; border-radius: 16px;
+            padding: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            text-align: center;
+        }
+        .welcome-card h2 { color: #333; font-size: 1.6rem; margin-bottom: 0.5rem; }
+        .welcome-card p { color: #666; margin-bottom: 1rem; }
+        .badge {
+            display: inline-block; background: #e8f0fe; color: #667eea;
+            padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.85rem;
+            font-weight: 600; margin: 0.2rem;
+        }
+    </style>
+</head>
+<body>
+<nav>
+    <h1>🎓 Quiz App</h1>
+    <div class="nav-right">
+        <span>Xin chào, <strong th:text="${username}">User</strong>!</span>
+        <form th:action="@{/auth/logout}" method="post" style="margin:0">
+            <button type="submit" class="btn-logout" style="cursor:pointer;border:none;">Đăng xuất</button>
+        </form>
+    </div>
+</nav>
+<div class="container">
+    <div class="welcome-card">
+        <h2>🎉 Chào mừng đến Dashboard!</h2>
+        <p>Bạn đã đăng nhập thành công vào hệ thống Quiz App.</p>
+        <div>
+            <span class="badge" th:each="role : ${roles}" th:text="${role.authority}">ROLE_STUDENT</span>
+        </div>
+    </div>
+</div>
+</body>
+</html>
