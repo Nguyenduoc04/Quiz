@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org">
+
+<body>
+
+<header th:fragment="header(pageTitle, pageDescription)"
+        class="admin-header">
+
+    <div class="header-title">
+        <h4 th:text="${pageTitle}">Dashboard</h4>
+
+        <p th:text="${pageDescription}">
+            Quản lý hệ thống Quiz CodeGym
+        </p>
+    </div>
+
+    <div class="admin-user">
+
+        <div class="admin-avatar">
+            A
+        </div>
+
+        <div class="admin-user-info">
+            <strong>Administrator</strong>
+            <span>Quản trị viên</span>
+        </div>
+
+    </div>
+
+</header>
+
+</body>
+</html>
