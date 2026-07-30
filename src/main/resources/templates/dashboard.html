@@ -43,7 +43,9 @@
     <h1>🎓 Quiz App</h1>
     <div class="nav-right">
         <span>Xin chào, <strong th:text="${username}">User</strong>!</span>
-        <a th:href="@{/auth/logout}" class="btn-logout">Đăng xuất</a>
+        <form th:action="@{/auth/logout}" method="post" style="margin:0">
+            <button type="submit" class="btn-logout" style="cursor:pointer;border:none;">Đăng xuất</button>
+        </form>
     </div>
 </nav>
 <div class="container">
