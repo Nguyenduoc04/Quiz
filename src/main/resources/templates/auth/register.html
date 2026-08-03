@@ -97,6 +97,13 @@
                  th:errors="*{confirmPassword}"></div>
         </div>
 
+        <div class="form-group" style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.8rem;">
+            <input type="checkbox" id="registerAsTeacher" th:field="*{registerAsTeacher}" style="width: auto;">
+            <label for="registerAsTeacher" style="margin-bottom: 0; cursor: pointer; color: #333; font-weight: 600;">
+                👨‍🏫 Đăng ký làm Giáo viên
+            </label>
+        </div>
+
         <button type="submit" class="btn">Đăng ký</button>
     </form>
 

@@ -26,7 +26,17 @@ public class UserRegisterDTO {
     @NotBlank(message = "Họ và tên không được để trống")
     private String fullName;
 
+    private boolean registerAsTeacher = false;
+
     public UserRegisterDTO() {
+    }
+
+    public UserRegisterDTO(String username, String password, String confirmPassword, String email, String fullName) {
+        this.username = username;
+        this.password = password;
+        this.confirmPassword = confirmPassword;
+        this.email = email;
+        this.fullName = fullName;
     }
 
     // Getters & Setters
@@ -68,5 +78,13 @@ public class UserRegisterDTO {
 
     public void setFullName(String fullName) {
         this.fullName = fullName;
+    }
+
+    public boolean isRegisterAsTeacher() {
+        return registerAsTeacher;
+    }
+
+    public void setRegisterAsTeacher(boolean registerAsTeacher) {
+        this.registerAsTeacher = registerAsTeacher;
     }
 }

@@ -10,7 +10,14 @@ public class UserLoginDTO {
     @NotBlank(message = "Vui lòng nhập mật khẩu")
     private String password;
 
+    // Constructor không tham số
     public UserLoginDTO() {
+    }
+
+    // Constructor có tham số (Bổ sung)
+    public UserLoginDTO(String username, String password) {
+        this.username = username;
+        this.password = password;
     }
 
     public String getUsername() {
