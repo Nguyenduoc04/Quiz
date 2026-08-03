@@ -44,7 +44,7 @@ src/main/java/com/codegym/Quiz/
 - Hoặc import trực tiếp file SQL có sẵn trong dự án: `src/main/resources/sql/quiz_db.sql`.
 
 ### 2. Cấu hình ứng dụng
-Chỉnh sửa thông tin kết nối DB trong file `src/main/resources/application.properties` (nếu có thay đổi mât khẩu `root`):
+Chỉnh sửa thông tin kết nối DB trong file `src/main/resources/application.properties` :
 ```properties
 spring.datasource.url=jdbc:mysql://localhost:3306/quiz_db?useSSL=false&serverTimezone=Asia/Ho_Chi_Minh&characterEncoding=UTF-8&allowPublicKeyRetrieval=true
 spring.datasource.username=root
@@ -66,12 +66,3 @@ Mở Terminal tại thư mục gốc của dự án và chạy bằng Gradle Wra
 
 Ứng dụng sẽ chạy tại địa chỉ: `http://localhost:8080`
 
----
-
-## 🔐 Cấu hình JWT Secret Key
-
-Trong `application.properties`:
-```properties
-jwt.secret=QuizApp_JWT_Secret_Key_2026_VeryLong_AtLeast_256bits_SecureKey_!@#
-```
-*Ghi chú*: Khóa Secret JWT được thiết kế dạng chuỗi độ dài lớn (>= 256 bits) để đáp ứng yêu cầu mã hóa an toàn HMAC-SHA256 của thư viện JWT (Tránh lỗ hổng bảo mật yếu).
