@@ -20,4 +20,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     // Kiểm tra Email đã tồn tại hay chưa
     boolean existsByEmail(String email);
+
+    // 1. Kiểm tra Email đã được dùng bởi TÀI KHOẢN KHÁC hay chưa (Phục vụ Cập nhật Profile)
+    boolean existsByEmailAndIdNot(String email, Long id);
+
+    // 2. Tìm người dùng bằng mã OTP (Phục vụ tính năng Quên / Đặt lại mật khẩu)
+    Optional<User> findByResetOtp(String resetOtp);
 }

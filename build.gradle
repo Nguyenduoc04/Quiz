@@ -29,7 +29,8 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-webmvc'
 	// Validation
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
-	// DevTools
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.springframework.boot:spring-boot-starter-mail'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	// MySQL (uncomment)
 	runtimeOnly 'com.mysql:mysql-connector-j'
