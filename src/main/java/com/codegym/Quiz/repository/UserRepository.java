@@ -1,4 +1,6 @@
 package com.codegym.Quiz.repository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import com.codegym.Quiz.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -26,4 +28,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     // 2. Tìm người dùng bằng mã OTP (Phục vụ tính năng Quên / Đặt lại mật khẩu)
     Optional<User> findByResetOtp(String resetOtp);
+    // Lấy danh sách học viên có phân trang
+    Page<User> findByRoles_Name(String roleName, Pageable pageable);
+
+    // Đếm tổng số học viên
+    long countByRoles_Name(String roleName);
 }

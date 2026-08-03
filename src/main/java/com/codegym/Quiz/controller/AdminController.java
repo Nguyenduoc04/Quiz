@@ -8,6 +8,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 import java.util.Optional;
@@ -94,5 +95,21 @@ public class AdminController {
             redirectAttributes.addFlashAttribute("errorMessage", "Không thể xóa tài khoản: " + e.getMessage());
         }
         return "redirect:/admin/users";
+    }
+    @GetMapping("/students")
+    public String listStudents(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size,
+            Model model) {
+
+        Page<User> studentPage = userService.getStudents(page, size);
+
+        model.addAttribute("students", studentPage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", studentPage.getTotalPages());
+        model.addAttribute("totalItems", studentPage.getTotalElements());
+        model.addAttribute("pageSize", size);
+
+        return "admin/students";
     }
 }
