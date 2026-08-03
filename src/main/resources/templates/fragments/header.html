@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="vi"
-      xmlns:th="http://www.thymeleaf.org">
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 
 <body>
 
@@ -17,13 +18,19 @@
 
     <div class="admin-user">
 
-        <div class="admin-avatar">
+        <div class="admin-avatar"
+             th:text="${fullName != null ? fullName.substring(0,1).toUpperCase() :
+                        (#authentication != null ? #authentication.name.substring(0,1).toUpperCase() : 'A')}">
             A
         </div>
 
         <div class="admin-user-info">
-            <strong>Administrator</strong>
-            <span>Quản trị viên</span>
+            <!-- Hiển thị fullName nếu có, fallback về username -->
+            <strong th:text="${fullName != null ? fullName : #authentication?.name}">Administrator</strong>
+            <!-- Hiển thị role đẹp hơn -->
+            <span sec:authorize="hasRole('ADMIN')">Quản trị viên</span>
+            <span sec:authorize="hasRole('STUDENT') and !hasRole('ADMIN')">Học viên</span>
+            <span sec:authorize="hasRole('USER') and !hasRole('STUDENT') and !hasRole('ADMIN')">Người dùng</span>
         </div>
 
     </div>

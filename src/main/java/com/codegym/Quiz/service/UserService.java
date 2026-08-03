@@ -25,9 +25,9 @@ public class UserService {
 
     @Autowired
     public UserService(UserRepository userRepository,
-                       RoleRepository roleRepository,
-                       PasswordEncoder passwordEncoder,
-                       EmailService emailService) {
+            RoleRepository roleRepository,
+            PasswordEncoder passwordEncoder,
+            EmailService emailService) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
@@ -57,10 +57,10 @@ public class UserService {
         user.setEnabled(true);
 
         // Gán Role mặc định ROLE_USER
-        Role userRole = roleRepository.findByName("ROLE_USER")
+        Role userRole = roleRepository.findByName(com.codegym.Quiz.constant.RoleConstants.ROLE_USER)
                 .orElseGet(() -> {
                     Role newRole = new Role();
-                    newRole.setName("ROLE_USER");
+                    newRole.setName(com.codegym.Quiz.constant.RoleConstants.ROLE_USER);
                     return roleRepository.save(newRole);
                 });
         user.getRoles().add(userRole);
@@ -77,8 +77,7 @@ public class UserService {
                 user.getId(),
                 user.getUsername(),
                 user.getFullName(),
-                user.getEmail()
-        );
+                user.getEmail());
     }
 
     // 2. Tối ưu kiểm tra Email bị trùng với người khác bằng Query chuẩn JPA
