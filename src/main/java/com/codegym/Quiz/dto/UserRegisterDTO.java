@@ -26,6 +26,8 @@ public class UserRegisterDTO {
     @NotBlank(message = "Họ và tên không được để trống")
     private String fullName;
 
+    private boolean registerAsTeacher = false;
+
     public UserRegisterDTO() {
     }
 
@@ -76,5 +78,13 @@ public class UserRegisterDTO {
 
     public void setFullName(String fullName) {
         this.fullName = fullName;
+    }
+
+    public boolean isRegisterAsTeacher() {
+        return registerAsTeacher;
+    }
+
+    public void setRegisterAsTeacher(boolean registerAsTeacher) {
+        this.registerAsTeacher = registerAsTeacher;
     }
 }

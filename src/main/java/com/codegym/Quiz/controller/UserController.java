@@ -59,6 +59,21 @@ public class UserController {
         return "redirect:/user/profile";
     }
 
+    // Đăng ký làm Giáo viên đối với người dùng đang đăng nhập
+    @PostMapping("/request-teacher")
+    public String requestTeacherRole(Principal principal, RedirectAttributes redirectAttributes) {
+        Long currentUserId = getCurrentUserId(principal);
+        try {
+            userService.requestTeacherRole(currentUserId);
+            redirectAttributes.addFlashAttribute("successMessage", "Yêu cầu đăng ký làm Giáo viên đã gửi thành công! Vui lòng chờ Admin duyệt.");
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Có lỗi xảy ra khi gửi yêu cầu!");
+        }
+        return "redirect:/dashboard";
+    }
+
     // ==========================================
     // 2. ĐĂNG KÝ TÀI KHOẢN
     // ==========================================

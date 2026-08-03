@@ -74,9 +74,13 @@ public class AuthService {
             throw new IllegalArgumentException("Mật khẩu xác nhận không khớp!");
         }
 
-        // 4. Lấy hoặc tạo mới role ROLE_USER (mặc định khi đăng ký)
-        Role userRole = roleRepository.findByName(com.codegym.Quiz.constant.RoleConstants.ROLE_USER)
-                .orElseGet(() -> roleRepository.save(new Role(com.codegym.Quiz.constant.RoleConstants.ROLE_USER)));
+        // 4. Xử lý gán Role: Nếu đăng ký làm Giáo viên -> gán ROLE_PENDING_TEACHER (chờ Admin duyệt)
+        String roleName = dto.isRegisterAsTeacher()
+                ? com.codegym.Quiz.constant.RoleConstants.ROLE_PENDING_TEACHER
+                : com.codegym.Quiz.constant.RoleConstants.ROLE_USER;
+
+        Role userRole = roleRepository.findByName(roleName)
+                .orElseGet(() -> roleRepository.save(new Role(roleName)));
 
         Set<Role> roles = new HashSet<>();
         roles.add(userRole);

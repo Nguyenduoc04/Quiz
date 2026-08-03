@@ -158,4 +158,74 @@ public class UserService {
         user.setOtpExpiry(null);
         userRepository.save(user);
     }
+
+    // ==========================================
+    // QUẢN LÝ NGƯỜI DÙNG DÀNH CHO ADMIN
+    // ==========================================
+
+    public java.util.List<User> getAllUsers() {
+        return userRepository.findAll();
+    }
+
+    // Lấy danh sách người dùng đang chờ duyệt Giáo viên
+    public java.util.List<User> getPendingTeachers() {
+        return userRepository.findAll().stream()
+                .filter(u -> u.getRoles().stream()
+                        .anyMatch(r -> r.getName().equals(com.codegym.Quiz.constant.RoleConstants.ROLE_PENDING_TEACHER)))
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    public void approveTeacher(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy người dùng"));
+
+        // Lấy hoặc tạo ROLE_TEACHER
+        Role teacherRole = roleRepository.findByName(com.codegym.Quiz.constant.RoleConstants.ROLE_TEACHER)
+                .orElseGet(() -> roleRepository.save(new Role(com.codegym.Quiz.constant.RoleConstants.ROLE_TEACHER)));
+
+        // Xóa ROLE_PENDING_TEACHER và thêm ROLE_TEACHER
+        user.getRoles().removeIf(role -> role.getName().equals(com.codegym.Quiz.constant.RoleConstants.ROLE_PENDING_TEACHER));
+        user.getRoles().add(teacherRole);
+
+        userRepository.save(user);
+    }
+
+    // Từ chối đăng ký làm Giáo viên (Xóa ROLE_PENDING_TEACHER, đưa về người dùng bình thường)
+    public void rejectTeacher(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy người dùng"));
+
+        user.getRoles().removeIf(role -> role.getName().equals(com.codegym.Quiz.constant.RoleConstants.ROLE_PENDING_TEACHER));
+        userRepository.save(user);
+    }
+
+    public void deleteUserById(Long userId) {
+        userRepository.deleteById(userId);
+    }
+
+    // Đăng ký làm Giáo viên đối với người dùng đang đăng nhập
+    public void requestTeacherRole(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy người dùng"));
+
+        // Nếu đã là Giáo viên hoặc đang chờ duyệt thì báo lỗi
+        boolean isTeacher = user.getRoles().stream()
+                .anyMatch(r -> r.getName().equals(com.codegym.Quiz.constant.RoleConstants.ROLE_TEACHER));
+        if (isTeacher) {
+            throw new IllegalArgumentException("Tài khoản của bạn đã là Giáo viên!");
+        }
+
+        boolean isPending = user.getRoles().stream()
+                .anyMatch(r -> r.getName().equals(com.codegym.Quiz.constant.RoleConstants.ROLE_PENDING_TEACHER));
+        if (isPending) {
+            throw new IllegalArgumentException("Yêu cầu của bạn đang chờ Admin duyệt!");
+        }
+
+        // Lấy hoặc tạo ROLE_PENDING_TEACHER
+        Role pendingRole = roleRepository.findByName(com.codegym.Quiz.constant.RoleConstants.ROLE_PENDING_TEACHER)
+                .orElseGet(() -> roleRepository.save(new Role(com.codegym.Quiz.constant.RoleConstants.ROLE_PENDING_TEACHER)));
+
+        user.getRoles().add(pendingRole);
+        userRepository.save(user);
+    }
 }
