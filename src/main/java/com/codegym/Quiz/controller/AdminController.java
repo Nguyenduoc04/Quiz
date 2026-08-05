@@ -126,4 +126,30 @@ public class AdminController {
 
         return "admin/students";
     }
+    @GetMapping("/teachers")
+    public String listTeachers(
+            @RequestParam(defaultValue = "") String keyword,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size,
+            Model model) {
+
+        Pageable pageable = PageRequest.of(page, size);
+
+        Page<User> teacherPage;
+
+        if (keyword == null || keyword.trim().isEmpty()) {
+            teacherPage = userService.getTeachers(pageable);
+        } else {
+            teacherPage = userService.searchTeachers(keyword.trim(), pageable);
+        }
+
+        model.addAttribute("teachers", teacherPage.getContent());
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("currentPage", teacherPage.getNumber());
+        model.addAttribute("totalPages", teacherPage.getTotalPages());
+        model.addAttribute("totalItems", teacherPage.getTotalElements());
+        model.addAttribute("pageSize", teacherPage.getSize());
+
+        return "admin/teachers";
+    }
 }

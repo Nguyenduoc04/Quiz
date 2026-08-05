@@ -238,6 +238,12 @@ public class UserService {
                 pageable
         );
     }
+    public Page<User> getTeachers(Pageable pageable) {
+        return userRepository.findByRoles_Name(
+                com.codegym.Quiz.constant.RoleConstants.ROLE_TEACHER,
+                pageable
+        );
+    }
     public long countStudents() {
         return userRepository.countByRoles_Name(
                 RoleConstants.ROLE_STUDENT
@@ -246,6 +252,13 @@ public class UserService {
     public Page<User> searchStudents(String keyword, Pageable pageable) {
         return userRepository.searchUsers(
                 RoleConstants.ROLE_STUDENT,
+                keyword,
+                pageable
+        );
+    }
+    public Page<User> searchTeachers(String keyword, Pageable pageable) {
+        return userRepository.searchUsers(
+                com.codegym.Quiz.constant.RoleConstants.ROLE_TEACHER,
                 keyword,
                 pageable
         );
