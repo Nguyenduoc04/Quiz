@@ -14,13 +14,15 @@
 <div class="container py-4">
 
     <div class="card shadow-sm border-0">
-        <div class="card-body">
+        <div class="card-body p-4">
 
+            <!-- Tiêu đề -->
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
                     <h2 class="mb-1">Quản lý học viên</h2>
+
                     <p class="text-muted mb-0">
-                        Tổng số học viên:
+                        Tổng số kết quả:
                         <strong th:text="${totalItems}">0</strong>
                     </p>
                 </div>
@@ -31,11 +33,56 @@
                 </a>
             </div>
 
-            <div th:if="${#lists.isEmpty(students)}"
-                 class="alert alert-info">
-                Chưa có học viên nào.
+            <!-- Form tìm kiếm -->
+            <form th:action="@{/admin/students}"
+                  method="get"
+                  class="row g-2 mb-4">
+
+                <div class="col-md-8">
+                    <input type="text"
+                           name="keyword"
+                           class="form-control"
+                           placeholder="Tìm theo tên đăng nhập, họ tên hoặc email..."
+                           th:value="${keyword}">
+                </div>
+
+                <div class="col-md-2">
+                    <button type="submit"
+                            class="btn btn-primary w-100">
+                        Tìm kiếm
+                    </button>
+                </div>
+
+                <div class="col-md-2">
+                    <a th:href="@{/admin/students}"
+                       class="btn btn-secondary w-100">
+                        Đặt lại
+                    </a>
+                </div>
+            </form>
+
+            <!-- Hiển thị từ khóa -->
+            <div class="alert alert-secondary"
+                 th:if="${keyword != null and !#strings.isEmpty(keyword)}">
+
+                Kết quả tìm kiếm cho:
+                <strong th:text="${keyword}"></strong>
             </div>
 
+            <!-- Không có dữ liệu -->
+            <div th:if="${#lists.isEmpty(students)}"
+                 class="alert alert-info">
+
+                <span th:if="${keyword != null and !#strings.isEmpty(keyword)}">
+                    Không tìm thấy học viên phù hợp.
+                </span>
+
+                <span th:unless="${keyword != null and !#strings.isEmpty(keyword)}">
+                    Chưa có học viên nào.
+                </span>
+            </div>
+
+            <!-- Bảng dữ liệu -->
             <div class="table-responsive"
                  th:unless="${#lists.isEmpty(students)}">
 
@@ -52,6 +99,7 @@
 
                     <tbody>
                     <tr th:each="student, status : ${students}">
+
                         <td th:text="${currentPage * pageSize + status.index + 1}">
                             1
                         </td>
@@ -61,6 +109,7 @@
                         </td>
 
                         <td th:text="${student.fullName != null
+                                      and !#strings.isEmpty(student.fullName)
                                       ? student.fullName
                                       : 'Chưa cập nhật'}">
                             Nguyễn Văn A
@@ -86,21 +135,25 @@
                 </table>
             </div>
 
+            <!-- Phân trang -->
             <nav th:if="${totalPages > 1}">
-                <ul class="pagination justify-content-center">
+                <ul class="pagination justify-content-center mb-0">
 
+                    <!-- Trang trước -->
                     <li class="page-item"
                         th:classappend="${currentPage == 0} ? 'disabled'">
 
                         <a class="page-link"
                            th:href="@{/admin/students(
                                page=${currentPage - 1},
-                               size=${pageSize}
+                               size=${pageSize},
+                               keyword=${keyword}
                            )}">
                             Trước
                         </a>
                     </li>
 
+                    <!-- Các số trang -->
                     <li class="page-item"
                         th:each="pageNumber : ${#numbers.sequence(0, totalPages - 1)}"
                         th:classappend="${pageNumber == currentPage} ? 'active'">
@@ -108,20 +161,23 @@
                         <a class="page-link"
                            th:href="@{/admin/students(
                                page=${pageNumber},
-                               size=${pageSize}
+                               size=${pageSize},
+                               keyword=${keyword}
                            )}"
                            th:text="${pageNumber + 1}">
                             1
                         </a>
                     </li>
 
+                    <!-- Trang sau -->
                     <li class="page-item"
                         th:classappend="${currentPage + 1 >= totalPages} ? 'disabled'">
 
                         <a class="page-link"
                            th:href="@{/admin/students(
                                page=${currentPage + 1},
-                               size=${pageSize}
+                               size=${pageSize},
+                               keyword=${keyword}
                            )}">
                             Sau
                         </a>

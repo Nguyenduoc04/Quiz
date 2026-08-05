@@ -232,17 +232,22 @@ public class UserService {
         user.getRoles().add(pendingRole);
         userRepository.save(user);
     }
-    public Page<User> getStudents(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-
+    public Page<User> getStudents(Pageable pageable) {
         return userRepository.findByRoles_Name(
-                com.codegym.Quiz.constant.RoleConstants.ROLE_STUDENT,
+                RoleConstants.ROLE_STUDENT,
                 pageable
         );
     }
     public long countStudents() {
         return userRepository.countByRoles_Name(
-                com.codegym.Quiz.constant.RoleConstants.ROLE_USER
+                RoleConstants.ROLE_STUDENT
+        );
+    }
+    public Page<User> searchStudents(String keyword, Pageable pageable) {
+        return userRepository.searchUsers(
+                RoleConstants.ROLE_STUDENT,
+                keyword,
+                pageable
         );
     }
 }
