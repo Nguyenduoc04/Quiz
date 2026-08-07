@@ -8,6 +8,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
@@ -94,5 +97,59 @@ public class AdminController {
             redirectAttributes.addFlashAttribute("errorMessage", "Không thể xóa tài khoản: " + e.getMessage());
         }
         return "redirect:/admin/users";
+    }
+    @GetMapping("/students")
+    public String listStudents(
+            @RequestParam(defaultValue = "") String keyword,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size,
+            Model model) {
+
+        Pageable pageable = PageRequest.of(page, size);
+
+        Page<User> studentPage;
+
+        if (keyword.isBlank()) {
+            studentPage = userService.getStudents(pageable);
+        } else {
+            studentPage = userService.searchStudents(keyword, pageable);
+        }
+
+        model.addAttribute("students", studentPage.getContent());
+        model.addAttribute("studentPage", studentPage);
+
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", studentPage.getTotalPages());
+        model.addAttribute("totalItems", studentPage.getTotalElements());
+        model.addAttribute("pageSize", size);
+
+        return "admin/students";
+    }
+    @GetMapping("/teachers")
+    public String listTeachers(
+            @RequestParam(defaultValue = "") String keyword,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size,
+            Model model) {
+
+        Pageable pageable = PageRequest.of(page, size);
+
+        Page<User> teacherPage;
+
+        if (keyword == null || keyword.trim().isEmpty()) {
+            teacherPage = userService.getTeachers(pageable);
+        } else {
+            teacherPage = userService.searchTeachers(keyword.trim(), pageable);
+        }
+
+        model.addAttribute("teachers", teacherPage.getContent());
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("currentPage", teacherPage.getNumber());
+        model.addAttribute("totalPages", teacherPage.getTotalPages());
+        model.addAttribute("totalItems", teacherPage.getTotalElements());
+        model.addAttribute("pageSize", teacherPage.getSize());
+
+        return "admin/teachers";
     }
 }

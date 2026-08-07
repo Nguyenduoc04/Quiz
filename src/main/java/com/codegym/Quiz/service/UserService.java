@@ -1,4 +1,7 @@
 package com.codegym.Quiz.service;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import com.codegym.Quiz.dto.ChangePasswordDTO;
 import com.codegym.Quiz.dto.ResetPasswordDTO;
@@ -11,6 +14,7 @@ import com.codegym.Quiz.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import com.codegym.Quiz.constant.RoleConstants;
 
 import java.time.LocalDateTime;
 import java.util.Random;
@@ -227,5 +231,36 @@ public class UserService {
 
         user.getRoles().add(pendingRole);
         userRepository.save(user);
+    }
+    public Page<User> getStudents(Pageable pageable) {
+        return userRepository.findByRoles_Name(
+                RoleConstants.ROLE_STUDENT,
+                pageable
+        );
+    }
+    public Page<User> getTeachers(Pageable pageable) {
+        return userRepository.findByRoles_Name(
+                com.codegym.Quiz.constant.RoleConstants.ROLE_TEACHER,
+                pageable
+        );
+    }
+    public long countStudents() {
+        return userRepository.countByRoles_Name(
+                RoleConstants.ROLE_STUDENT
+        );
+    }
+    public Page<User> searchStudents(String keyword, Pageable pageable) {
+        return userRepository.searchUsers(
+                RoleConstants.ROLE_STUDENT,
+                keyword,
+                pageable
+        );
+    }
+    public Page<User> searchTeachers(String keyword, Pageable pageable) {
+        return userRepository.searchUsers(
+                com.codegym.Quiz.constant.RoleConstants.ROLE_TEACHER,
+                keyword,
+                pageable
+        );
     }
 }

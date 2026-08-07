@@ -13,7 +13,11 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Page;
+import com.codegym.Quiz.entity.User;
 
+import org.springframework.data.domain.Pageable;
 import java.security.Principal;
 
 @Controller
@@ -72,6 +76,32 @@ public class UserController {
             redirectAttributes.addFlashAttribute("errorMessage", "Có lỗi xảy ra khi gửi yêu cầu!");
         }
         return "redirect:/dashboard";
+    }
+    @GetMapping("/students")
+    public String listStudents(
+            @RequestParam(defaultValue = "") String keyword,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size,
+            Model model) {
+
+        Pageable pageable = PageRequest.of(page, size);
+
+        Page<User> studentPage;
+
+        if (keyword == null || keyword.trim().isEmpty()) {
+            studentPage = userService.getStudents(pageable);
+        } else {
+            studentPage = userService.searchStudents(keyword.trim(), pageable);
+        }
+
+        model.addAttribute("students", studentPage.getContent());
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("currentPage", studentPage.getNumber());
+        model.addAttribute("totalPages", studentPage.getTotalPages());
+        model.addAttribute("totalItems", studentPage.getTotalElements());
+        model.addAttribute("pageSize", studentPage.getSize());
+
+        return "admin/students";
     }
 
     // ==========================================
