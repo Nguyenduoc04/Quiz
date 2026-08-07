@@ -35,3 +35,6 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### Sensitive local config - KHONG commit len GitHub! ###
+src/main/resources/application-local.properties

@@ -45,15 +45,14 @@ public class AuthService {
     // ===================== ĐĂNG KÝ =====================
 
     /**
-     * Đăng ký tài khoản mới với ROLE_USER (mặc định).
+     * Đăng ký tài khoản mới với ROLE_STUDENT (mặc định).
      * <p>
-     * Người dùng mới sẽ có ROLE_USER:
+     * Người dùng đã đăng ký sẽ có ROLE_STUDENT:
      * - Có thể tham gia quiz công khai
-     * - Kết quả KHÔNG được lưu lại
-     * - Không thể vào lớp học riêng
+     * - Kết quả ĐƯỢC lưu lại
+     * - Có thể tham gia lớp học bằng mã 6 số
      * <p>
-     * Để nâng lên ROLE_STUDENT: người dùng cần nhập mã lớp học (xử lý bởi Class
-     * Module).
+     * Nếu đăng ký làm Giáo viên: sẽ có ROLE_PENDING_TEACHER (chờ Admin duyệt).
      *
      * @throws IllegalArgumentException nếu dữ liệu không hợp lệ
      */
@@ -74,10 +73,11 @@ public class AuthService {
             throw new IllegalArgumentException("Mật khẩu xác nhận không khớp!");
         }
 
-        // 4. Xử lý gán Role: Nếu đăng ký làm Giáo viên -> gán ROLE_PENDING_TEACHER (chờ Admin duyệt)
+        // 4. Xử lý gán Role: Nếu đăng ký làm Giáo viên -> ROLE_PENDING_TEACHER (chờ Admin duyệt)
+        //    Ngược lại -> ROLE_STUDENT (mặc định cho người dùng đã đăng ký)
         String roleName = dto.isRegisterAsTeacher()
                 ? com.codegym.Quiz.constant.RoleConstants.ROLE_PENDING_TEACHER
-                : com.codegym.Quiz.constant.RoleConstants.ROLE_USER;
+                : com.codegym.Quiz.constant.RoleConstants.ROLE_STUDENT;
 
         Role userRole = roleRepository.findByName(roleName)
                 .orElseGet(() -> roleRepository.save(new Role(roleName)));

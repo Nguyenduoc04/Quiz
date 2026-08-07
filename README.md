@@ -47,8 +47,8 @@ src/main/java/com/codegym/Quiz/
 Chỉnh sửa thông tin kết nối DB trong file `src/main/resources/application.properties` :
 ```properties
 spring.datasource.url=jdbc:mysql://localhost:3306/quiz_db?useSSL=false&serverTimezone=Asia/Ho_Chi_Minh&characterEncoding=UTF-8&allowPublicKeyRetrieval=true
-spring.datasource.username=root
-spring.datasource.password=123456
+spring.datasource.username=DB_USERNAME
+spring.datasource.password=DB_PASSWORD
 ```
 
 ### 3. Chạy ứng dụng

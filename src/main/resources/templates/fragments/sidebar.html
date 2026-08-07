@@ -22,6 +22,13 @@
 
         <p class="menu-title">QUẢN TRỊ HỆ THỐNG</p>
 
+        <a th:href="@{/dashboard}"
+           class="sidebar-link">
+
+            <i class="bi bi-house"></i>
+            <span>Home</span>
+        </a>
+
         <a th:href="@{/admin/dashboard}"
            class="sidebar-link">
 
@@ -32,7 +39,7 @@
         <a th:href="@{/admin/students}"
            class="sidebar-link">
 
-            <i class="bi bi-mortarboard-fill"></i>
+            <i class="bi bi-mortarboard"></i>
             <span>Quản lý học viên</span>
         </a>
 
@@ -46,14 +53,14 @@
         <a th:href="@{/admin/teachers/pending}"
            class="sidebar-link">
 
-            <i class="bi bi-person-check-fill"></i>
+            <i class="bi bi-person-check"></i>
             <span>Duyệt giáo viên</span>
         </a>
 
         <a th:href="@{/admin/users}"
            class="sidebar-link">
 
-            <i class="bi bi-people-fill"></i>
+            <i class="bi bi-people"></i>
             <span>Quản lý tài khoản</span>
         </a>
 
@@ -65,6 +72,7 @@
             <i class="bi bi-person-circle"></i>
             <span>Thông tin cá nhân</span>
         </a>
+
 
     </nav>
 

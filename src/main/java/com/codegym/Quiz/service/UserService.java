@@ -1,4 +1,7 @@
 package com.codegym.Quiz.service;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import com.codegym.Quiz.dto.ChangePasswordDTO;
 import com.codegym.Quiz.dto.ResetPasswordDTO;
@@ -11,6 +14,7 @@ import com.codegym.Quiz.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import com.codegym.Quiz.constant.RoleConstants;
 
 import java.time.LocalDateTime;
 import java.util.Random;
@@ -47,7 +51,7 @@ public class UserService {
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy người dùng với username: " + username));
     }
 
-    // 1. Đăng ký người dùng mới (Đã bổ sung gán ROLE_USER mặc định)
+    // 1. Đăng ký người dùng mới (Đã bổ sung gán ROLE_STUDENT mặc định)
     public void registerNewUser(UserRegisterDTO registerDTO) {
         User user = new User();
         user.setUsername(registerDTO.getUsername());
@@ -56,11 +60,11 @@ public class UserService {
         user.setFullName(registerDTO.getFullName());
         user.setEnabled(true);
 
-        // Gán Role mặc định ROLE_USER
-        Role userRole = roleRepository.findByName(com.codegym.Quiz.constant.RoleConstants.ROLE_USER)
+        // Gán Role mặc định ROLE_STUDENT (người dùng đã đăng ký luôn là học sinh)
+        Role userRole = roleRepository.findByName(com.codegym.Quiz.constant.RoleConstants.ROLE_STUDENT)
                 .orElseGet(() -> {
                     Role newRole = new Role();
-                    newRole.setName(com.codegym.Quiz.constant.RoleConstants.ROLE_USER);
+                    newRole.setName(com.codegym.Quiz.constant.RoleConstants.ROLE_STUDENT);
                     return roleRepository.save(newRole);
                 });
         user.getRoles().add(userRole);
@@ -227,5 +231,36 @@ public class UserService {
 
         user.getRoles().add(pendingRole);
         userRepository.save(user);
+    }
+    public Page<User> getStudents(Pageable pageable) {
+        return userRepository.findByRoles_Name(
+                RoleConstants.ROLE_STUDENT,
+                pageable
+        );
+    }
+    public Page<User> getTeachers(Pageable pageable) {
+        return userRepository.findByRoles_Name(
+                com.codegym.Quiz.constant.RoleConstants.ROLE_TEACHER,
+                pageable
+        );
+    }
+    public long countStudents() {
+        return userRepository.countByRoles_Name(
+                RoleConstants.ROLE_STUDENT
+        );
+    }
+    public Page<User> searchStudents(String keyword, Pageable pageable) {
+        return userRepository.searchUsers(
+                RoleConstants.ROLE_STUDENT,
+                keyword,
+                pageable
+        );
+    }
+    public Page<User> searchTeachers(String keyword, Pageable pageable) {
+        return userRepository.searchUsers(
+                com.codegym.Quiz.constant.RoleConstants.ROLE_TEACHER,
+                keyword,
+                pageable
+        );
     }
 }
