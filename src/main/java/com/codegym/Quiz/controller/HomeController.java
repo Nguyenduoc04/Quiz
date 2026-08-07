@@ -23,14 +23,16 @@ public class HomeController {
      */
     @GetMapping("/")
     public String home(Authentication authentication) {
-        if (authentication != null && authentication.isAuthenticated()) {
+        if (authentication != null && authentication.isAuthenticated()
+                && !(authentication.getPrincipal() instanceof String
+                     && authentication.getPrincipal().equals("anonymousUser"))) {
             // Đã đăng nhập → redirect theo role
             if (authHelper.isAdmin()) {
                 return "redirect:/admin/dashboard";
             }
-            return "redirect:/dashboard";
         }
-        return "redirect:/auth/login";
+        // Chưa đăng nhập hoặc user thường → vào dashboard (public)
+        return "redirect:/dashboard";
     }
 
     /**
@@ -39,20 +41,32 @@ public class HomeController {
      */
     @GetMapping("/dashboard")
     public String dashboard(Model model, Authentication authentication) {
-        model.addAttribute("username", authentication.getName());
-        model.addAttribute("roles", authentication.getAuthorities());
+        boolean isLoggedIn = authentication != null && authentication.isAuthenticated()
+                && !(authentication.getPrincipal() instanceof String
+                     && authentication.getPrincipal().equals("anonymousUser"));
+        model.addAttribute("isLoggedIn", isLoggedIn);
 
-        // Lấy thông tin đầy đủ từ DB để hiển thị fullName
-        Optional<User> userOpt = authHelper.getCurrentUser();
-        userOpt.ifPresent(user -> {
-            model.addAttribute("fullName",
-                    user.getFullName() != null ? user.getFullName() : user.getUsername());
-        });
+        if (isLoggedIn) {
+            model.addAttribute("username", authentication.getName());
+            model.addAttribute("roles", authentication.getAuthorities());
 
-        // Thông tin quyền để dashboard biết hiển thị gì
-        model.addAttribute("isStudent", authHelper.isStudent());
-        model.addAttribute("isAdmin", authHelper.isAdmin());
-        model.addAttribute("canSaveResult", authHelper.canSaveQuizResult());
+            // Lấy thông tin đầy đủ từ DB để hiển thị fullName
+            Optional<User> userOpt = authHelper.getCurrentUser();
+            userOpt.ifPresent(user -> {
+                model.addAttribute("fullName",
+                        user.getFullName() != null ? user.getFullName() : user.getUsername());
+            });
+
+            // Thông tin quyền để dashboard biết hiển thị gì
+            model.addAttribute("isStudent", authHelper.isStudent());
+            model.addAttribute("isAdmin", authHelper.isAdmin());
+            model.addAttribute("canSaveResult", authHelper.canSaveQuizResult());
+        } else {
+            // Khách chưa đăng nhập – giá trị mặc định
+            model.addAttribute("isStudent", false);
+            model.addAttribute("isAdmin", false);
+            model.addAttribute("canSaveResult", false);
+        }
 
         return "dashboard";
     }

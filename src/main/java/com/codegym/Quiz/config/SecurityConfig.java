@@ -64,6 +64,7 @@ public class SecurityConfig {
                 // Tài nguyên công khai – ai cũng truy cập được
                 .requestMatchers(
                     "/",
+                    "/dashboard",
                     "/auth/login",
                     "/auth/register",
                     "/user/login",

@@ -6,8 +6,12 @@ import com.codegym.Quiz.dto.ResetPasswordDTO;
 import com.codegym.Quiz.dto.UserRegisterDTO;
 import com.codegym.Quiz.dto.UserUpdateDTO;
 import com.codegym.Quiz.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -69,7 +73,8 @@ public class UserController {
         Long currentUserId = getCurrentUserId(principal);
         try {
             userService.requestTeacherRole(currentUserId);
-            redirectAttributes.addFlashAttribute("successMessage", "Yêu cầu đăng ký làm Giáo viên đã gửi thành công! Vui lòng chờ Admin duyệt.");
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "Yêu cầu đăng ký làm Giáo viên đã gửi thành công! Vui lòng chờ Admin duyệt.");
         } catch (IllegalArgumentException e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         } catch (Exception e) {
@@ -77,6 +82,7 @@ public class UserController {
         }
         return "redirect:/dashboard";
     }
+
     @GetMapping("/students")
     public String listStudents(
             @RequestParam(defaultValue = "") String keyword,
@@ -157,7 +163,9 @@ public class UserController {
             BindingResult bindingResult,
             RedirectAttributes redirectAttributes,
             Model model,
-            Principal principal) {
+            Principal principal,
+            HttpServletRequest request,
+            HttpServletResponse response) {
 
         if (bindingResult.hasErrors()) {
             return "user/change-password";
@@ -167,8 +175,11 @@ public class UserController {
 
         try {
             userService.changePassword(currentUserId, dto);
-            redirectAttributes.addFlashAttribute("successMessage", "Đổi mật khẩu thành công!");
-            return "redirect:/user/profile";
+
+            // Đổi mật khẩu thành công → logout sạch session & cookie, về trang login
+            new SecurityContextLogoutHandler().logout(
+                    request, response, SecurityContextHolder.getContext().getAuthentication());
+            return "redirect:/auth/login?logout=true";
         } catch (IllegalArgumentException e) {
             model.addAttribute("errorMessage", e.getMessage());
             return "user/change-password";
@@ -198,7 +209,8 @@ public class UserController {
 
         try {
             userService.generateForgotPasswordOtp(dto.getEmail());
-            redirectAttributes.addFlashAttribute("successMessage", "Mã OTP đã được gửi thành công! Vui lòng kiểm tra hòm thư Email của bạn.");
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "Mã OTP đã được gửi thành công! Vui lòng kiểm tra hòm thư Email của bạn.");
             redirectAttributes.addAttribute("email", dto.getEmail());
             return "redirect:/user/reset-password";
         } catch (IllegalArgumentException e) {
