@@ -295,14 +295,44 @@
             color: #e65100;
             font-weight: 700;
         }
+        .sidebar-logo a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 22px;
+            font-weight: 700;
+
+            color: #ffffff;
+            text-decoration: none;
+        }
+
+        .sidebar-logo a:hover,
+        .sidebar-logo a:focus,
+        .sidebar-logo a:visited {
+            color: #ffffff;
+            text-decoration: none;
+        }
+
+        .sidebar-logo i {
+            font-size: 28px;
+            color: #f59e0b;
+        }
     </style>
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+          rel="stylesheet">
 </head>
 
 <body>
 
     <!-- ── Navbar ── -->
     <nav>
-        <h1>🎓 Quiz App</h1>
+        <div class="sidebar-logo">
+            <a th:href="@{/dashboard}">
+                <i class="bi bi-patch-question-fill"></i>
+                <span>Quiz CodeGym</span>
+            </a>
+        </div>
         <div class="nav-right">
 
             <!-- Dropdown menu người dùng -->
