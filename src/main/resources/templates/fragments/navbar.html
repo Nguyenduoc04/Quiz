@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<body>
+
+    <div th:fragment="navbar">
+        <style>
+            .custom-navbar {
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                padding: 0.8rem 2rem;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                color: white;
+                box-shadow: 0 2px 12px rgba(102, 126, 234, 0.4);
+            }
+
+            .custom-navbar .sidebar-logo a {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                font-size: 22px;
+                font-weight: 700;
+                color: #ffffff;
+                text-decoration: none;
+            }
+
+            .custom-navbar .sidebar-logo i {
+                font-size: 28px;
+                color: #f59e0b;
+            }
+
+            .user-dropdown-container {
+                position: relative;
+                display: inline-block;
+            }
+
+            .user-dropdown-btn {
+                background: rgba(255, 255, 255, 0.18);
+                color: white;
+                border: 1px solid rgba(255, 255, 255, 0.35);
+                padding: 0.5rem 1rem;
+                border-radius: 25px;
+                font-size: 0.95rem;
+                font-weight: 500;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                transition: all 0.2s ease;
+            }
+
+            .user-dropdown-btn:hover,
+            .user-dropdown-container:hover .user-dropdown-btn {
+                background: rgba(255, 255, 255, 0.3);
+            }
+
+            .custom-dropdown-menu {
+                display: none !important;
+                position: absolute;
+                right: 0;
+                top: 100%;
+                padding-top: 8px;
+                min-width: 240px;
+                z-index: 1050;
+            }
+
+            .user-dropdown-container:hover .custom-dropdown-menu {
+                display: block !important;
+            }
+
+            .custom-dropdown-menu-content {
+                background-color: white;
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+                border-radius: 12px;
+                overflow: hidden;
+            }
+
+            .custom-dropdown-item {
+                color: #333 !important;
+                padding: 0.75rem 1.2rem;
+                text-decoration: none;
+                display: flex;
+                align-items: center;
+                gap: 0.6rem;
+                font-size: 0.9rem;
+                font-weight: 500;
+                transition: background 0.2s;
+                background: transparent;
+                border: 0 !important;
+                outline: none !important;
+                width: 100%;
+                text-align: left;
+                cursor: pointer;
+                font-family: inherit;
+            }
+
+            .custom-dropdown-item:hover {
+                background-color: #f4f6fb !important;
+                color: #667eea !important;
+            }
+
+            .custom-dropdown-item.logout-btn {
+                color: #e74c3c !important;
+            }
+
+            .custom-dropdown-item.logout-btn:hover {
+                background-color: #fde8e8 !important;
+                color: #c0392b !important;
+            }
+        </style>
+
+        <nav class="custom-navbar">
+            <div class="sidebar-logo">
+                <a th:href="@{/dashboard}">
+                    <i class="bi bi-patch-question-fill"></i>
+                    <span>Quiz CodeGym</span>
+                </a>
+            </div>
+
+            <div class="nav-right" style="display: flex; align-items: center; gap: 1rem;">
+                <!-- Đã đăng nhập (kiểm tra chuẩn Spring Security) -->
+                <div class="user-dropdown-container" sec:authorize="isAuthenticated()">
+                    <button class="user-dropdown-btn">
+                        👤 Xin chào, <strong
+                            th:text="${fullName != null ? fullName : #authentication.name}">User</strong> ▾
+                    </button>
+                    <div class="custom-dropdown-menu">
+                        <div class="custom-dropdown-menu-content">
+                            <a th:href="@{/dashboard}" class="custom-dropdown-item">
+                                🏠 Trang chủ
+                            </a>
+                            <a th:href="@{/user/profile}" class="custom-dropdown-item">
+                                📋 Xem/Sửa thông tin
+                            </a>
+                            <a th:href="@{/user/change-password}" class="custom-dropdown-item">
+                                🔑 Đổi mật khẩu
+                            </a>
+                            <!-- Quyền Admin -->
+                            <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/dashboard}"
+                                class="custom-dropdown-item" style="font-weight: 600;">
+                                🛡️ Trang Quản Trị
+                            </a>
+                            <!-- Quyền Teacher hoặc Admin -->
+                            <a sec:authorize="hasAnyRole('TEACHER', 'ADMIN')" th:href="@{/teacher/questions}"
+                                class="custom-dropdown-item" style="font-weight: 600;">
+                                📚 Ngân Hàng Câu Hỏi
+                            </a>
+                            <a href="#" class="custom-dropdown-item"
+                                onclick="event.preventDefault(); if(confirm('Bạn muốn gửi yêu cầu Đăng ký làm Giáo viên?')) document.getElementById('requestTeacherFormNav').submit();">
+                                👨‍🏫 Đăng ký làm Giáo viên
+                            </a>
+                            <form id="requestTeacherFormNav" th:action="@{/user/request-teacher}" method="post"
+                                style="display:none;"></form>
+                            <form th:action="@{/auth/logout}" method="post" style="margin:0">
+                                <button type="submit" class="custom-dropdown-item logout-btn">
+                                    🚪 Đăng xuất
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chưa đăng nhập (khách ghé thăm) -->
+                <div sec:authorize="isAnonymous()" style="display:flex;gap:0.6rem;">
+                    <a th:href="@{/auth/login}" style="background:rgba(255,255,255,0.18);color:white;border:1px solid rgba(255,255,255,0.35);
+                          padding:0.5rem 1.1rem;border-radius:25px;font-size:0.9rem;font-weight:600;
+                          text-decoration:none;transition:background 0.2s;"
+                        onmouseover="this.style.background='rgba(255,255,255,0.3)'"
+                        onmouseout="this.style.background='rgba(255,255,255,0.18)'">
+                        🔑 Đăng nhập
+                    </a>
+                    <a th:href="@{/auth/register}" style="background:white;color:#667eea;padding:0.5rem 1.1rem;border-radius:25px;
+                          font-size:0.9rem;font-weight:600;text-decoration:none;transition:opacity 0.2s;"
+                        onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
+                        ✏️ Đăng ký
+                    </a>
+                </div>
+
+            </div>
+        </nav>
+    </div>
+
+</body>
+
+</html>

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${isEdit} ? 'Cập Nhật Danh Mục' : 'Tạo Mới Danh Mục'">Danh mục</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+</head>
+<body>
+
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+<div class="admin-main">
+    <div th:replace="~{fragments/header :: header(${isEdit} ? 'Cập nhật danh mục' : 'Tạo mới danh mục', 'Điền đầy đủ thông tin bên dưới')}"></div>
+
+    <main class="admin-content p-4">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+
+                <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <span th:text="${errorMessage}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white py-3 border-0">
+                        <h5 class="mb-0 fw-bold" th:text="${isEdit} ? 'Sửa thông tin danh mục' : 'Tạo danh mục mới'">Thông tin</h5>
+                    </div>
+                    <div class="card-body p-4">
+
+                        <form th:action="${isEdit} ? @{/admin/categories/{id}/edit(id=${categoryDTO.id})} : @{/admin/categories/create}"
+                              th:object="${categoryDTO}" method="post">
+
+                            <div class="mb-3">
+                                <label for="name" class="form-label fw-semibold">Tên danh mục <span class="text-danger">*</span></label>
+                                <input type="text" id="name" th:field="*{name}" class="form-control" placeholder="Ví dụ: Lập trình Java Core" required maxlength="100">
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="description" class="form-label fw-semibold">Mô tả danh mục</label>
+                                <textarea id="description" th:field="*{description}" class="form-control" rows="4" placeholder="Nhập mô tả ngắn cho danh mục..." maxlength="500"></textarea>
+                            </div>
+
+                            <div class="d-flex justify-content-end gap-2">
+                                <a th:href="@{/admin/categories}" class="btn btn-outline-secondary">Hủy bỏ</a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-save me-1"></i> <span th:text="${isEdit} ? 'Cập nhật' : 'Lưu danh mục'">Lưu</span>
+                                </button>
+                            </div>
+
+                        </form>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+</div>
+
+<script href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

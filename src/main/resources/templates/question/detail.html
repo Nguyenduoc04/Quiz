@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi Tiết Câu Hỏi - Quiz CodeGym</title>
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; min-height: 100vh; }
+        .main-container { max-width: 900px; margin: 2rem auto; padding: 0 1.5rem; }
+        .card-custom { background: white; border-radius: 16px; padding: 2.5rem 2rem; box-shadow: 0 4px 24px rgba(0, 0, 0, 0.07); border: none; }
+    </style>
+</head>
+<body>
+
+<!-- Top Navbar -->
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<div class="main-container">
+
+    <div class="card-custom">
+        <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
+            <div>
+                <h3 class="fw-bold mb-1" style="color: #1a1a2e;">📖 Chi Tiết Câu Hỏi #<span th:text="${question.id}">1</span></h3>
+                <span th:if="${question.difficultyLevel.name() == 'EASY'}" class="badge bg-success-subtle text-success border border-success-subtle">Mức độ: Dễ</span>
+                <span th:if="${question.difficultyLevel.name() == 'MEDIUM'}" class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle">Mức độ: Trung bình</span>
+                <span th:if="${question.difficultyLevel.name() == 'HARD'}" class="badge bg-danger-subtle text-danger border border-danger-subtle">Mức độ: Khó</span>
+            </div>
+            <a th:href="@{/teacher/questions}" class="btn btn-outline-secondary rounded-pill px-3">
+                <i class="bi bi-arrow-left me-1"></i> Quay lại danh sách
+            </a>
+        </div>
+
+        <!-- Nội dung câu hỏi -->
+        <div class="mb-4">
+            <h6 class="text-muted fw-semibold mb-2">Nội dung câu hỏi:</h6>
+            <div class="p-4 rounded-3 fw-semibold text-dark fs-5" style="background-color: #f8f9fa; border: 1px solid #e9ecef;" th:text="${question.content}">
+                Nội dung câu hỏi ở đây?
+            </div>
+        </div>
+
+        <!-- Thông tin phụ (Meta Info) -->
+        <div class="row mb-4 g-3 p-3 rounded-3" style="background-color: #f4f6fb;">
+            <div class="col-md-4">
+                <span class="text-muted small">Danh mục:</span>
+                <span class="fw-bold d-block text-primary" th:text="${question.categoryName}">Danh mục</span>
+            </div>
+            <div class="col-md-4">
+                <span class="text-muted small">Điểm số:</span>
+                <span class="fw-bold d-block text-dark" th:text="${question.score}">1.0</span>
+            </div>
+            <div class="col-md-4">
+                <span class="text-muted small">Người tạo:</span>
+                <span class="fw-bold d-block text-dark" th:text="${question.createdByName}">Giáo viên A</span>
+            </div>
+        </div>
+
+        <!-- Các lựa chọn đáp án -->
+        <div class="mb-4">
+            <h6 class="text-muted fw-semibold mb-3">Các phương án lựa chọn:</h6>
+            <div class="vstack gap-2">
+                <div th:each="ans, stat : ${question.answers}"
+                     class="p-3 rounded-3 border d-flex justify-content-between align-items-center"
+                     th:style="${ans.correct} ? 'background-color: #e8f5e9; border-color: #c8e6c9 !important; color: #2e7d32;' : 'background-color: #ffffff;'">
+                    <div>
+                        <span class="fw-bold me-2" th:text="${stat.index == 0 ? 'A.' : (stat.index == 1 ? 'B.' : (stat.index == 2 ? 'C.' : 'D.'))}">A.</span>
+                        <span th:text="${ans.content}" class="fw-medium">Nội dung đáp án</span>
+                    </div>
+                    <span th:if="${ans.correct}" class="badge bg-success rounded-pill px-3 py-2">
+                        <i class="bi bi-check-circle-fill me-1"></i> Đáp án đúng
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lời giải thích -->
+        <div class="mb-4" th:if="${question.explanation != null and !question.explanation.isBlank()}">
+            <h6 class="text-muted fw-semibold mb-2">Lời giải thích chi tiết:</h6>
+            <div class="p-3 rounded-3 text-dark border" style="background-color: #fff8e1; border-color: #ffe0b2 !important;" th:text="${question.explanation}">
+                Lời giải thích...
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+            <a th:href="@{/teacher/questions}" class="btn btn-light border px-4 rounded-pill">Quay lại</a>
+            <a th:href="@{/teacher/questions/{id}/edit(id=${question.id})}" class="btn btn-warning px-4 rounded-pill">
+                <i class="bi bi-pencil me-1"></i> Chỉnh sửa câu hỏi
+            </a>
+        </div>
+
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

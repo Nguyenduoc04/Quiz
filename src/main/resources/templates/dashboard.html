@@ -325,66 +325,8 @@
 
 <body>
 
-    <!-- ── Navbar ── -->
-    <nav>
-        <div class="sidebar-logo">
-            <a th:href="@{/dashboard}">
-                <i class="bi bi-patch-question-fill"></i>
-                <span>Quiz CodeGym</span>
-            </a>
-        </div>
-        <div class="nav-right">
-
-            <!-- Đã đăng nhập: hiển thị dropdown người dùng -->
-            <div class="user-dropdown" th:if="${isLoggedIn}">
-                <button class="user-dropdown-btn">
-                    👤 Xin chào, <strong th:text="${fullName != null ? fullName : username}">User</strong> ▾
-                </button>
-                <div class="dropdown-menu">
-                    <div class="dropdown-menu-content">
-                        <a th:href="@{/user/profile}" class="dropdown-item">
-                            📋 Xem/Sửa thông tin
-                        </a>
-                        <a th:href="@{/user/change-password}" class="dropdown-item">
-                            🔑 Đổi mật khẩu
-                        </a>
-                        <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/dashboard}" class="dropdown-item" style="color: #0d6efd; font-weight: 600;">
-                            🛡️ Trang Quản Trị (Admin)
-                        </a>
-                        <a href="#" class="dropdown-item" onclick="event.preventDefault(); if(confirm('Bạn muốn gửi yêu cầu Đăng ký làm Giáo viên?')) document.getElementById('requestTeacherForm').submit();">
-                            👨‍🏫 Đăng ký làm Giáo viên
-                        </a>
-                        <form id="requestTeacherForm" th:action="@{/user/request-teacher}" method="post" style="display:none;"></form>
-                        <form th:action="@{/auth/logout}" method="post" style="margin:0">
-                            <button type="submit" class="dropdown-item logout-btn">
-                                🚪 Đăng xuất
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Chưa đăng nhập: hiển thị nút Đăng nhập / Đăng ký -->
-            <div th:unless="${isLoggedIn}" style="display:flex;gap:0.6rem;">
-                <a th:href="@{/auth/login}"
-                   style="background:rgba(255,255,255,0.18);color:white;border:1px solid rgba(255,255,255,0.35);
-                          padding:0.5rem 1.1rem;border-radius:25px;font-size:0.9rem;font-weight:600;
-                          text-decoration:none;transition:background 0.2s;"
-                   onmouseover="this.style.background='rgba(255,255,255,0.3)'"
-                   onmouseout="this.style.background='rgba(255,255,255,0.18)'">
-                    🔑 Đăng nhập
-                </a>
-                <a th:href="@{/auth/register}"
-                   style="background:white;color:#667eea;padding:0.5rem 1.1rem;border-radius:25px;
-                          font-size:0.9rem;font-weight:600;text-decoration:none;transition:opacity 0.2s;"
-                   onmouseover="this.style.opacity='0.85'"
-                   onmouseout="this.style.opacity='1'">
-                    ✏️ Đăng ký
-                </a>
-            </div>
-
-        </div>
-    </nav>
+<!-- Top Navbar -->
+<div th:replace="~{fragments/navbar :: navbar}"></div>
 
     <!-- ── Main content ── -->
     <div class="container">

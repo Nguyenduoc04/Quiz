@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${isEdit} ? 'Cập Nhật Câu Hỏi - Quiz CodeGym' : 'Tạo Mới Câu Hỏi - Quiz CodeGym'">Câu hỏi</title>
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; min-height: 100vh; }
+        .main-container { max-width: 900px; margin: 2rem auto; padding: 0 1.5rem; }
+        .card-custom { background: white; border-radius: 16px; padding: 2.5rem 2rem; box-shadow: 0 4px 24px rgba(0, 0, 0, 0.07); border: none; }
+        .btn-gradient { background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; font-weight: 500; }
+        .btn-gradient:hover { opacity: 0.9; color: white; }
+    </style>
+</head>
+<body>
+
+<!-- Top Navbar -->
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<div class="main-container">
+
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show rounded-3 shadow-sm mb-4" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i><span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div class="card-custom">
+        <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
+            <div>
+                <h3 class="fw-bold mb-1" style="color: #1a1a2e;" th:text="${isEdit} ? '✏️ Cập Nhật Câu Hỏi' : '➕ Tạo Câu Hỏi Mới'">Form Câu Hỏi</h3>
+                <p class="text-muted mb-0">Điền thông tin câu hỏi và cấu hình các phương án trả lời bên dưới</p>
+            </div>
+            <a th:href="@{/teacher/questions}" class="btn btn-outline-secondary rounded-pill px-3">
+                <i class="bi bi-arrow-left me-1"></i> Quay lại
+            </a>
+        </div>
+
+        <form th:action="${isEdit} ? @{/teacher/questions/{id}/edit(id=${questionDTO.id})} : @{/teacher/questions/create}"
+              th:object="${questionDTO}" method="post">
+
+            <div class="row g-3 mb-3">
+                <!-- Danh mục -->
+                <div class="col-md-6">
+                    <label for="categoryId" class="form-label fw-semibold">Danh mục câu hỏi <span class="text-danger">*</span></label>
+                    <select id="categoryId" th:field="*{categoryId}" class="form-select rounded-3 py-2" required>
+                        <option value="">-- Chọn danh mục --</option>
+                        <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.name}">Java Core</option>
+                    </select>
+                </div>
+
+                <!-- Mức độ khó -->
+                <div class="col-md-3">
+                    <label for="difficultyLevel" class="form-label fw-semibold">Mức độ khó</label>
+                    <select id="difficultyLevel" th:field="*{difficultyLevel}" class="form-select rounded-3 py-2">
+                        <option value="EASY">Dễ</option>
+                        <option value="MEDIUM">Trung bình</option>
+                        <option value="HARD">Khó</option>
+                    </select>
+                </div>
+
+                <!-- Điểm số -->
+                <div class="col-md-3">
+                    <label for="score" class="form-label fw-semibold">Điểm số</label>
+                    <input type="number" step="0.5" id="score" th:field="*{score}" class="form-control rounded-3 py-2" value="1.0" min="0.5" required>
+                </div>
+            </div>
+
+            <!-- Nội dung câu hỏi -->
+            <div class="mb-4">
+                <label for="content" class="form-label fw-semibold">Nội dung câu hỏi <span class="text-danger">*</span></label>
+                <textarea id="content" th:field="*{content}" class="form-control rounded-3" rows="3" placeholder="Nhập câu hỏi tại đây..." required></textarea>
+            </div>
+
+            <!-- Danh sách đáp án (A, B, C, D) -->
+            <div class="mb-4">
+                <label class="form-label fw-semibold">Các phương án lựa chọn <span class="text-danger">*</span></label>
+                <p class="text-muted small mb-2">Tích chọn ô bên cạnh phương án để đánh dấu là đáp án đúng.</p>
+
+                <div class="vstack gap-2">
+                    <!-- Đáp án A -->
+                    <div class="input-group">
+                        <div class="input-group-text bg-light border-end-0">
+                            <input class="form-check-input mt-0" type="checkbox" th:field="*{answers[0].correct}">
+                            <span class="ms-2 fw-bold text-primary">A.</span>
+                        </div>
+                        <input type="text" th:field="*{answers[0].content}" class="form-control py-2" placeholder="Đáp án A" required>
+                    </div>
+
+                    <!-- Đáp án B -->
+                    <div class="input-group">
+                        <div class="input-group-text bg-light border-end-0">
+                            <input class="form-check-input mt-0" type="checkbox" th:field="*{answers[1].correct}">
+                            <span class="ms-2 fw-bold text-primary">B.</span>
+                        </div>
+                        <input type="text" th:field="*{answers[1].content}" class="form-control py-2" placeholder="Đáp án B" required>
+                    </div>
+
+                    <!-- Đáp án C -->
+                    <div class="input-group">
+                        <div class="input-group-text bg-light border-end-0">
+                            <input class="form-check-input mt-0" type="checkbox" th:field="*{answers[2].correct}">
+                            <span class="ms-2 fw-bold text-primary">C.</span>
+                        </div>
+                        <input type="text" th:field="*{answers[2].content}" class="form-control py-2" placeholder="Đáp án C (tùy chọn)">
+                    </div>
+
+                    <!-- Đáp án D -->
+                    <div class="input-group">
+                        <div class="input-group-text bg-light border-end-0">
+                            <input class="form-check-input mt-0" type="checkbox" th:field="*{answers[3].correct}">
+                            <span class="ms-2 fw-bold text-primary">D.</span>
+                        </div>
+                        <input type="text" th:field="*{answers[3].content}" class="form-control py-2" placeholder="Đáp án D (tùy chọn)">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lời giải thích -->
+            <div class="mb-4">
+                <label for="explanation" class="form-label fw-semibold">Giải thích chi tiết (Không bắt buộc)</label>
+                <textarea id="explanation" th:field="*{explanation}" class="form-control rounded-3" rows="2" placeholder="Giải thích đáp án cho học sinh..."></textarea>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+                <a th:href="@{/teacher/questions}" class="btn btn-light border px-4 rounded-pill">Hủy bỏ</a>
+                <button type="submit" class="btn btn-gradient px-4 rounded-pill">
+                    <i class="bi bi-save me-1"></i> <span th:text="${isEdit} ? 'Cập nhật câu hỏi' : 'Lưu câu hỏi'">Lưu</span>
+                </button>
+            </div>
+
+        </form>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
