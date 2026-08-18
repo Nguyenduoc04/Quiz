@@ -15,21 +15,25 @@ public class ExamServiceImpl implements ExamService {
 
     private final ExamRepository examRepository;
 
+    // Constructor Injection thủ công thay cho Lombok
     public ExamServiceImpl(ExamRepository examRepository) {
         this.examRepository = examRepository;
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Exam> getAllExams() {
         return examRepository.findAll();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Exam> getActiveExams() {
         return examRepository.findByStatus(ExamStatus.ACTIVE);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Exam getExamById(Long id) {
         return examRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy bài thi có ID: " + id));
@@ -37,6 +41,9 @@ public class ExamServiceImpl implements ExamService {
 
     @Override
     public Exam createExam(Exam exam) {
+        if (exam.getStatus() == null) {
+            exam.setStatus(ExamStatus.DRAFT);
+        }
         return examRepository.save(exam);
     }
 
@@ -46,7 +53,6 @@ public class ExamServiceImpl implements ExamService {
         existingExam.setTitle(examDetails.getTitle());
         existingExam.setDescription(examDetails.getDescription());
         existingExam.setDurationMinutes(examDetails.getDurationMinutes());
-        existingExam.setPassScore(examDetails.getPassScore());
         existingExam.setStatus(examDetails.getStatus());
         return examRepository.save(existingExam);
     }

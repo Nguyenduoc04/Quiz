@@ -12,4 +12,5 @@ public interface ExamService {
     Exam updateExam(Long id, Exam examDetails);
     void deleteExam(Long id);
     void updateStatus(Long id, ExamStatus status);
+    List<Exam> getExamsByCreatedBy(String createdBy);
 }
