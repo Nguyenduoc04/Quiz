@@ -4,6 +4,7 @@ import com.codegym.Quiz.entity.Exam;
 import com.codegym.Quiz.entity.ExamQuestion;
 import com.codegym.Quiz.entity.ExamStatus;
 import com.codegym.Quiz.entity.Question;
+import com.codegym.Quiz.repository.ExamQuestionRepository;
 import com.codegym.Quiz.repository.ExamRepository;
 import com.codegym.Quiz.repository.QuestionRepository;
 import com.codegym.Quiz.service.ExamService;
@@ -15,27 +16,37 @@ import java.util.List;
 
 @Service
 @Transactional
-public class ExamServiceImpl extends ExamService {
+public class ExamServiceImpl implements ExamService {
 
     private final ExamRepository examRepository;
     private final QuestionRepository questionRepository;
+    private final ExamQuestionRepository examQuestionRepository;
 
-    public ExamServiceImpl(ExamRepository examRepository, QuestionRepository questionRepository) {
+    public ExamServiceImpl(ExamRepository examRepository,
+                           QuestionRepository questionRepository,
+                           ExamQuestionRepository examQuestionRepository) {
         this.examRepository = examRepository;
         this.questionRepository = questionRepository;
+        this.examQuestionRepository = examQuestionRepository;
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<Exam> getAllExams() { return examRepository.findAll(); }
+    public List<Exam> getAllExams() {
+        return examRepository.findAll();
+    }
 
     @Override
     @Transactional(readOnly = true)
-    public List<Exam> getActiveExams() { return examRepository.findByStatus(ExamStatus.ACTIVE); }
+    public List<Exam> getActiveExams() {
+        return examRepository.findByStatus(ExamStatus.ACTIVE);
+    }
 
     @Override
     @Transactional(readOnly = true)
-    public List<Exam> getExamsByCreatedBy(String createdBy) { return examRepository.findByCreatedBy(createdBy); }
+    public List<Exam> getExamsByCreatedBy(String createdBy) {
+        return examRepository.findByCreatedBy(createdBy);
+    }
 
     @Override
     @Transactional(readOnly = true)
@@ -45,8 +56,16 @@ public class ExamServiceImpl extends ExamService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public Exam findById(Long id) {
+        return getExamById(id);
+    }
+
+    @Override
     public Exam createExam(Exam exam) {
-        if (exam.getStatus() == null) exam.setStatus(ExamStatus.DRAFT);
+        if (exam.getStatus() == null) {
+            exam.setStatus(ExamStatus.DRAFT);
+        }
         return examRepository.save(exam);
     }
 
@@ -79,7 +98,9 @@ public class ExamServiceImpl extends ExamService {
         Exam exam = getExamById(examId);
         List<Long> ids = new ArrayList<>();
         for (ExamQuestion eq : exam.getExamQuestions()) {
-            if (eq.getQuestion() != null) ids.add(eq.getQuestion().getId());
+            if (eq.getQuestion() != null) {
+                ids.add(eq.getQuestion().getId());
+            }
         }
         return ids;
     }
@@ -98,11 +119,36 @@ public class ExamServiceImpl extends ExamService {
                 ExamQuestion examQuestion = new ExamQuestion();
                 examQuestion.setExam(exam);
                 examQuestion.setQuestion(question);
-                examQuestion.setOrdinal(ordinal++);
+                examQuestion.setQuestionOrder(ordinal++);
 
                 exam.getExamQuestions().add(examQuestion);
             }
         }
         examRepository.save(exam);
+    }
+
+    @Override
+    public void addQuestionToExam(Long examId, Long questionId) {
+        if (examQuestionRepository.existsByExamIdAndQuestionId(examId, questionId)) {
+            return;
+        }
+
+        Exam exam = getExamById(examId);
+        Question question = questionRepository.findById(questionId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy câu hỏi ID: " + questionId));
+
+        Integer maxOrder = examQuestionRepository.findMaxOrderNumByExamId(examId).orElse(0);
+
+        ExamQuestion eq = new ExamQuestion();
+        eq.setExam(exam);
+        eq.setQuestion(question);
+        eq.setQuestionOrder(maxOrder + 1);
+
+        examQuestionRepository.save(eq);
+    }
+
+    @Override
+    public void removeQuestionFromExam(Long examId, Long questionId) {
+        examQuestionRepository.deleteByExamIdAndQuestionId(examId, questionId);
     }
 }

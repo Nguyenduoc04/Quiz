@@ -1,53 +1,35 @@
 package com.codegym.Quiz.service;
 
 import com.codegym.Quiz.entity.Exam;
-import com.codegym.Quiz.entity.ExamQuestion;
-import com.codegym.Quiz.entity.Question;
-import com.codegym.Quiz.repository.ExamQuestionRepository;
-import com.codegym.Quiz.repository.ExamRepository;
-import com.codegym.Quiz.repository.QuestionRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import com.codegym.Quiz.entity.ExamStatus;
 
-@Service
-@Transactional
-public class ExamService {
+import java.util.List;
 
-    @Autowired
-    private ExamRepository examRepository;
+public interface ExamService {
 
-    @Autowired
-    private QuestionRepository questionRepository;
+    List<Exam> getAllExams();
 
-    @Autowired
-    private ExamQuestionRepository examQuestionRepository;
+    List<Exam> getActiveExams();
 
-    public Exam findById(Long id) {
-        return examRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy bài thi"));
-    }
+    List<Exam> getExamsByCreatedBy(String createdBy);
 
-    public void addQuestionToExam(Long examId, Long questionId) {
-        if (examQuestionRepository.existsByExamIdAndQuestionId(examId, questionId)) {
-            return;
-        }
+    Exam getExamById(Long id);
 
-        Exam exam = findById(examId);
-        Question question = questionRepository.findById(questionId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy câu hỏi"));
+    Exam findById(Long id);
 
-        Integer maxOrder = examQuestionRepository.findMaxOrderNumByExamId(examId).orElse(0);
+    Exam createExam(Exam exam);
 
-        ExamQuestion eq = new ExamQuestion();
-        eq.setExam(exam);
-        eq.setQuestion(question);
-        eq.setQuestionOrder(maxOrder + 1);
+    Exam updateExam(Long id, Exam examDetails);
 
-        examQuestionRepository.save(eq);
-    }
+    void deleteExam(Long id);
 
-    public void removeQuestionFromExam(Long examId, Long questionId) {
-        examQuestionRepository.deleteByExamIdAndQuestionId(examId, questionId);
-    }
+    void updateStatus(Long id, ExamStatus status);
+
+    List<Long> getQuestionIdsByExamId(Long examId);
+
+    void updateExamQuestions(Long examId, List<Long> questionIds);
+
+    void addQuestionToExam(Long examId, Long questionId);
+
+    void removeQuestionFromExam(Long examId, Long questionId);
 }
