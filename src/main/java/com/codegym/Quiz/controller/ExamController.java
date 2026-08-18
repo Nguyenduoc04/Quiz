@@ -2,7 +2,10 @@ package com.codegym.Quiz.controller;
 
 import com.codegym.Quiz.entity.Exam;
 import com.codegym.Quiz.entity.ExamStatus;
+import com.codegym.Quiz.entity.Question;
+import com.codegym.Quiz.service.CategoryService;
 import com.codegym.Quiz.service.ExamService;
+import com.codegym.Quiz.service.QuestionService;
 import jakarta.validation.Valid;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -18,13 +21,15 @@ import java.util.List;
 public class ExamController {
 
     private final ExamService examService;
+    private final QuestionService questionService;
+    private final CategoryService categoryService;
 
-    // Constructor Injection thủ công (Không dùng Lombok)
-    public ExamController(ExamService examService) {
+    public ExamController(ExamService examService, QuestionService questionService, CategoryService categoryService) {
         this.examService = examService;
+        this.questionService = questionService;
+        this.categoryService = categoryService;
     }
 
-    // 1. Danh sách bài thi & Lọc theo người tạo (Bước 3)
     @GetMapping
     public String listExams(
             @RequestParam(required = false) String createdBy,
@@ -33,10 +38,8 @@ public class ExamController {
             Model model
     ) {
         List<Exam> exams;
-
         if (Boolean.TRUE.equals(myExamsOnly) && authentication != null) {
-            String currentUsername = authentication.getName();
-            exams = examService.getExamsByCreatedBy(currentUsername);
+            exams = examService.getExamsByCreatedBy(authentication.getName());
             model.addAttribute("myExamsOnly", true);
         } else if (createdBy != null && !createdBy.isBlank()) {
             exams = examService.getExamsByCreatedBy(createdBy);
@@ -50,7 +53,6 @@ public class ExamController {
         return "exam/list";
     }
 
-    // 2. Form tạo bài thi mới (Bước 5 & 6)
     @GetMapping("/create")
     public String showCreateForm(Model model, Authentication authentication) {
         Exam exam = new Exam();
@@ -64,7 +66,6 @@ public class ExamController {
         return "exam/form";
     }
 
-    // 3. Xử lý lưu bài thi mới (Bước 5)
     @PostMapping("/create")
     public String createExam(
             @Valid @ModelAttribute("exam") Exam exam,
@@ -80,30 +81,21 @@ public class ExamController {
             return "exam/form";
         }
 
-        if (authentication != null) {
-            exam.setCreatedBy(authentication.getName());
-        } else {
-            exam.setCreatedBy("Anonymous");
-        }
-
+        exam.setCreatedBy((authentication != null) ? authentication.getName() : "Anonymous");
         examService.createExam(exam);
         redirectAttributes.addFlashAttribute("successMessage", "Tạo đề thi mới thành công!");
         return "redirect:/exams";
     }
 
-    // 4. Form chỉnh sửa thông tin bài thi (Bước 8 & 9)
     @GetMapping("/edit/{id}")
     public String showEditForm(@PathVariable("id") Long id, Model model, Authentication authentication) {
-        Exam exam = examService.getExamById(id);
-
-        model.addAttribute("exam", exam);
+        model.addAttribute("exam", examService.getExamById(id));
         model.addAttribute("statuses", ExamStatus.values());
         model.addAttribute("pageTitle", "Chỉnh sửa Đề thi");
         addAuthAttributes(model, authentication);
         return "exam/form";
     }
 
-    // 5. Xử lý cập nhật bài thi (Bước 8)
     @PostMapping("/edit/{id}")
     public String updateExam(
             @PathVariable("id") Long id,
@@ -125,7 +117,6 @@ public class ExamController {
         return "redirect:/exams";
     }
 
-    // 6. Xóa bài thi
     @GetMapping("/delete/{id}")
     public String deleteExam(@PathVariable("id") Long id, RedirectAttributes redirectAttributes) {
         examService.deleteExam(id);
@@ -133,7 +124,39 @@ public class ExamController {
         return "redirect:/exams";
     }
 
-    // Helper method đồng bộ dữ liệu User sang Navbar/Layout
+    @GetMapping("/{id}/questions")
+    public String showSelectQuestionsForm(
+            @PathVariable("id") Long id,
+            @RequestParam(required = false) Long categoryId,
+            Model model,
+            Authentication authentication
+    ) {
+        Exam exam = examService.getExamById(id);
+        List<Question> questions = (categoryId != null)
+                ? questionService.getQuestionsByCategoryId(categoryId)
+                : questionService.getAllQuestions();
+
+        model.addAttribute("exam", exam);
+        model.addAttribute("questions", questions);
+        model.addAttribute("categories", categoryService.getAllCategories());
+        model.addAttribute("selectedCategoryId", categoryId);
+        model.addAttribute("selectedQuestionIds", examService.getQuestionIdsByExamId(id));
+        addAuthAttributes(model, authentication);
+
+        return "exam/select-questions";
+    }
+
+    @PostMapping("/{id}/questions")
+    public String saveSelectedQuestions(
+            @PathVariable("id") Long id,
+            @RequestParam(name = "questionIds", required = false) List<Long> questionIds,
+            RedirectAttributes redirectAttributes
+    ) {
+        examService.updateExamQuestions(id, questionIds);
+        redirectAttributes.addFlashAttribute("successMessage", "Cập nhật danh sách câu hỏi thành công!");
+        return "redirect:/exams";
+    }
+
     private void addAuthAttributes(Model model, Authentication authentication) {
         boolean isLoggedIn = authentication != null && authentication.isAuthenticated();
         model.addAttribute("isLoggedIn", isLoggedIn);

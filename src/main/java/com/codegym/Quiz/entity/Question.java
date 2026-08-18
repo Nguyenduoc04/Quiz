@@ -13,6 +13,10 @@ public class Question {
     @Column(columnDefinition = "TEXT", nullable = false)
     private String content;
 
+    @ManyToOne
+    @JoinColumn(name = "category_id")
+    private Category category;
+
     public Question() {
     }
 
@@ -25,4 +29,7 @@ public class Question {
 
     public String getContent() { return content; }
     public void setContent(String content) { this.content = content; }
+
+    public Category getCategory() { return category; }
+    public void setCategory(Category category) { this.category = category; }
 }
