@@ -9,7 +9,7 @@
 
 <h2 class="mb-4">Cập Nhật Bài Thi</h2>
 
-<form th:action="@{/admin/exams/update}" th:object="${exam}" method="post" class="card p-3 mb-4 shadow-sm">
+<form th:action="@{/admin/exams/edit/{id}(id=${exam.id})}" th:object="${exam}" method="post" class="card p-3 mb-4 shadow-sm">
     <input type="hidden" th:field="*{id}">
     <div class="mb-3">
         <label class="form-label font-weight-bold">Tên bài thi:</label>

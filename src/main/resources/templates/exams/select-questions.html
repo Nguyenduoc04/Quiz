@@ -23,7 +23,7 @@
 
     <!-- Filter Category -->
     <div class="card" style="margin-top: 1rem;">
-        <form th:action="@{/exams/{id}/questions(id=${exam.id})}" method="get" style="display: flex; gap: 1rem; align-items: center;">
+        <form th:action="@{/admin/exams/{id}/questions(id=${exam.id})}" method="get" style="display: flex; gap: 1rem; align-items: center;">
             <select name="categoryId" style="padding: 0.5rem 1rem; border-radius: 8px; border: 1px solid #cbd5e1;">
                 <option value="">-- Tất cả danh mục --</option>
                 <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.name}" th:selected="${cat.id == selectedCategoryId}"></option>
@@ -34,15 +34,15 @@
 
     <!-- Question Checkbox List -->
     <div class="card">
-        <form th:action="@{/exams/{id}/questions(id=${exam.id})}" method="post">
+        <form th:action="@{/admin/exams/{id}/questions(id=${exam.id})}" method="post">
             <div th:each="q : ${questions}" class="question-item">
-                <input type="checkbox" name="questionIds" th:value="${q.id}" th:checked="${#lists.contains(selectedQuestionIds, q.id)}" style="margin-top: 0.2rem;">
+                <input type="checkbox" name="questionIds" th:value="${q.id}" th:checked="${selectedQuestionIds != null and selectedQuestionIds.contains(q.id)}" style="margin-top: 0.2rem;">
                 <div>
                     <strong th:text="${q.content}">Nội dung câu hỏi?</strong>
                 </div>
             </div>
             <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem;">
-                <a th:href="@{/exams}" style="padding: 0.65rem 1.4rem; color: #64748b; text-decoration: none;">Hủy</a>
+                <a th:href="@{/admin/exams}" style="padding: 0.65rem 1.4rem; color: #64748b; text-decoration: none;">Hủy</a>
                 <button type="submit" class="btn-save">Lưu câu hỏi</button>
             </div>
         </form>

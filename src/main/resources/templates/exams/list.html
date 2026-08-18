@@ -19,10 +19,17 @@
         .container { max-width: 1100px; margin: 2rem auto; padding: 0 1.5rem; }
         .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
         .page-header h2 { color: #1a1a2e; font-size: 1.6rem; display: flex; align-items: center; gap: 0.5rem; }
+
+        .header-actions { display: flex; gap: 0.8rem; align-items: center; }
+        .btn-back { background: white; color: #475569; border: 1px solid #cbd5e1; padding: 0.65rem 1.3rem; border-radius: 25px; font-weight: 600; font-size: 0.9rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; transition: all 0.2s; }
+        .btn-back:hover { background: #f8fafc; color: #1e293b; border-color: #94a3b8; }
+
         .btn-create { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 0.65rem 1.3rem; border-radius: 25px; font-weight: 600; font-size: 0.9rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3); }
         .filter-card { background: white; border-radius: 16px; padding: 1.25rem 1.5rem; box-shadow: 0 4px 24px rgba(0, 0, 0, 0.05); margin-bottom: 1.5rem; }
         .filter-form { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
-        .form-input { padding: 0.55rem 1rem; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.9rem; outline: none; min-width: 220px; }
+
+        .form-input { padding: 0.55rem 1rem; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.9rem; outline: none; min-width: 340px; }
+
         .btn-filter { background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; padding: 0.55rem 1.1rem; border-radius: 8px; font-weight: 600; cursor: pointer; }
         .table-card { background: white; border-radius: 16px; box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06); overflow: hidden; }
         .custom-table { width: 100%; border-collapse: collapse; text-align: left; }
@@ -31,6 +38,7 @@
         .badge { display: inline-flex; align-items: center; padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.78rem; font-weight: 600; }
         .badge-active { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
         .badge-draft { background: #fff8e1; color: #b78103; border: 1px solid #ffe0b2; }
+        .badge-inactive { background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; }
         .action-btns { display: flex; gap: 0.4rem; justify-content: center; }
         .btn-action { width: 34px; height: 34px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; font-size: 0.95rem; }
         .btn-questions { background: #f0fdf4; color: #16a34a; }
@@ -41,7 +49,7 @@
 <body>
 <nav>
     <div class="sidebar-logo">
-        <a th:href="@{/dashboard}"><i class="bi bi-patch-question-fill"></i><span>Quiz CodeGym</span></a>
+        <a th:href="@{/admin/dashboard}"><i class="bi bi-patch-question-fill"></i><span>Quiz CodeGym</span></a>
     </div>
     <div class="nav-right" th:if="${isLoggedIn}">
         <div class="user-dropdown">
@@ -58,15 +66,19 @@
 <div class="container">
     <div class="page-header">
         <h2><i class="bi bi-journal-text" style="color: #667eea;"></i> Quản lý Đề thi</h2>
-        <a th:href="@{/exams/create}" class="btn-create"><i class="bi bi-plus-lg"></i> Tạo đề thi mới</a>
+
+        <div class="header-actions">
+            <a th:href="@{/admin/dashboard}" class="btn-back"><i class="bi bi-arrow-left"></i> Quay lại</a>
+            <a th:href="@{/admin/exams/create}" class="btn-create"><i class="bi bi-plus-lg"></i> Tạo đề thi mới</a>
+        </div>
     </div>
 
     <div class="filter-card">
-        <form th:action="@{/exams}" method="get" class="filter-form">
+        <form th:action="@{/admin/exams}" method="get" class="filter-form">
             <input type="text" name="createdBy" class="form-input" placeholder="Tìm theo username người tạo..." th:value="${createdBy}">
             <label><input type="checkbox" name="myExamsOnly" value="true" th:checked="${myExamsOnly}"> Chỉ hiện đề thi của tôi</label>
             <button type="submit" class="btn-filter"><i class="bi bi-funnel"></i> Lọc</button>
-            <a th:href="@{/exams}" style="color: #64748b; text-decoration: none; font-size: 0.88rem;">Đặt lại</a>
+            <a th:href="@{/admin/exams}" style="color: #64748b; text-decoration: none; font-size: 0.88rem;">Đặt lại</a>
         </form>
     </div>
 
@@ -91,14 +103,16 @@
                 </td>
                 <td th:text="${exam.durationMinutes + ' phút'}">45 phút</td>
                 <td>
-                    <span class="badge" th:classappend="${exam.status.name() == 'ACTIVE' ? 'badge-active' : 'badge-draft'}" th:text="${exam.status}">ACTIVE</span>
+                    <span class="badge"
+                          th:classappend="${exam.status.name() == 'ACTIVE' ? 'badge-active' : (exam.status.name() == 'INACTIVE' ? 'badge-inactive' : 'badge-draft')}"
+                          th:text="${exam.status.name() == 'ACTIVE' ? 'Hoạt động' : (exam.status.name() == 'INACTIVE' ? 'Lưu trữ' : 'Bản nháp')}">Hoạt động</span>
                 </td>
                 <td th:text="${exam.createdBy}">admin</td>
                 <td>
                     <div class="action-btns">
-                        <a th:href="@{/exams/{id}/questions(id=${exam.id})}" class="btn-action btn-questions" title="Chọn câu hỏi"><i class="bi bi-list-check"></i></a>
-                        <a th:href="@{/exams/edit/{id}(id=${exam.id})}" class="btn-action btn-edit" title="Chỉnh sửa"><i class="bi bi-pencil-square"></i></a>
-                        <a th:href="@{/exams/delete/{id}(id=${exam.id})}" class="btn-action btn-delete" title="Xóa" onclick="return confirm('Xóa bài thi này?')"><i class="bi bi-trash"></i></a>
+                        <a th:href="@{/admin/exams/{id}/questions(id=${exam.id})}" class="btn-action btn-questions" title="Chọn câu hỏi"><i class="bi bi-list-check"></i></a>
+                        <a th:href="@{/admin/exams/edit/{id}(id=${exam.id})}" class="btn-action btn-edit" title="Chỉnh sửa"><i class="bi bi-pencil-square"></i></a>
+                        <a th:href="@{/admin/exams/delete/{id}(id=${exam.id})}" class="btn-action btn-delete" title="Xóa" onclick="return confirm('Xóa bài thi này?')"><i class="bi bi-trash"></i></a>
                     </div>
                 </td>
             </tr>

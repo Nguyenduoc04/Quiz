@@ -24,7 +24,8 @@
 <div class="container">
     <h2 style="margin-bottom: 1.5rem;" th:text="${pageTitle}">Tạo Đề thi</h2>
     <div class="form-card">
-        <form th:action="${exam.id == null ? '/exams/create' : '/exams/edit/' + exam.id}" th:object="${exam}" method="post">
+        <!-- Đã bổ sung /admin và bọc cú pháp @{...} -->
+        <form th:action="@{${exam.id == null ? '/admin/exams/create' : '/admin/exams/edit/' + exam.id}}" th:object="${exam}" method="post">
             <div class="form-group">
                 <label class="form-label">Tên đề thi *</label>
                 <input type="text" th:field="*{title}" class="form-control" required placeholder="Nhập tên đề thi">
@@ -37,7 +38,10 @@
                 <div class="form-group">
                     <label class="form-label">Trạng thái *</label>
                     <select th:field="*{status}" class="form-control">
-                        <option th:each="st : ${statuses}" th:value="${st}" th:text="${st}"></option>
+                        <option th:each="st : ${statuses}"
+                                th:value="${st}"
+                                th:text="${st.name() == 'DRAFT' ? 'Bản nháp' : (st.name() == 'ACTIVE' ? 'Hoạt động' : (st.name() == 'INACTIVE' ? 'Lưu trữ' : st))}">
+                        </option>
                     </select>
                 </div>
             </div>
@@ -46,7 +50,7 @@
                 <textarea th:field="*{description}" class="form-control" rows="3"></textarea>
             </div>
             <div style="display: flex; justify-content: flex-end; gap: 1rem;">
-                <a th:href="@{/exams}" style="padding: 0.65rem 1.4rem; color: #64748b; text-decoration: none;">Hủy</a>
+                <a th:href="@{/admin/exams}" style="padding: 0.65rem 1.4rem; color: #64748b; text-decoration: none;">Hủy</a>
                 <button type="submit" class="btn-submit">Lưu lại</button>
             </div>
         </form>
