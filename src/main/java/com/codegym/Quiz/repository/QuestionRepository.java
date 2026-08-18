@@ -10,4 +10,5 @@ import java.util.List;
 public interface QuestionRepository extends JpaRepository<Question, Long> {
 
     List<Question> findByIdNotIn(List<Long> ids);
+    List<Question> findByCategoryId(Long categoryId);
 }
