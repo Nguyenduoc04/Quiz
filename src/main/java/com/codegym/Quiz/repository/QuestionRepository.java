@@ -49,6 +49,28 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
             @Param("difficulty") Question.DifficultyLevel difficulty,
             Pageable pageable
     );
+    /**
+     * Teacher tìm kiếm câu hỏi của chính mình
+     * theo keyword, category và difficulty.
+     */
+    @Query("""
+        SELECT q FROM Question q
+        WHERE q.createdBy = :user
+          AND (:keyword IS NULL
+               OR LOWER(q.content) LIKE LOWER(CONCAT('%', :keyword, '%')))
+          AND (:categoryId IS NULL
+               OR q.category.id = :categoryId)
+          AND (:difficulty IS NULL
+               OR q.difficultyLevel = :difficulty)
+        ORDER BY q.createdAt DESC
+        """)
+    Page<Question> searchAdvancedByUser(
+            @Param("user") User user,
+            @Param("keyword") String keyword,
+            @Param("categoryId") Long categoryId,
+            @Param("difficulty") Question.DifficultyLevel difficulty,
+            Pageable pageable
+    );
 
     /** Kiểm tra xem câu hỏi có thuộc danh mục này không */
     boolean existsByCategoryId(Long categoryId);
