@@ -9,14 +9,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.springframework.web.bind.annotation.PathVariable;
 
 @Controller
 @RequestMapping("/teacher/categories")
@@ -25,15 +19,17 @@ public class TeacherCategoryController {
     private final CategoryService categoryService;
     private final AuthenticationHelper authHelper;
 
-    public TeacherCategoryController(CategoryService categoryService,
-                                     AuthenticationHelper authHelper) {
+    public TeacherCategoryController(
+            CategoryService categoryService,
+            AuthenticationHelper authHelper) {
+
         this.categoryService = categoryService;
         this.authHelper = authHelper;
     }
 
     /**
      * Teacher xem danh sách category của chính mình.
-     * Có hỗ trợ tìm kiếm theo keyword và phân trang.
+     * Có hỗ trợ search theo keyword và phân trang.
      */
     @GetMapping
     public String listCategories(
@@ -54,43 +50,87 @@ public class TeacherCategoryController {
                         keyword,
                         pageable
                 );
-        model.addAttribute("categories", categoryPage.getContent());
-        model.addAttribute("categoryPage", categoryPage);
 
-        model.addAttribute("keyword", keyword);
+        model.addAttribute(
+                "categories",
+                categoryPage.getContent()
+        );
 
-        model.addAttribute("currentPage", page);
-        model.addAttribute("totalPages", categoryPage.getTotalPages());
-        model.addAttribute("totalItems", categoryPage.getTotalElements());
-        model.addAttribute("pageSize", size);
+        model.addAttribute(
+                "categoryPage",
+                categoryPage
+        );
+
+        model.addAttribute(
+                "keyword",
+                keyword
+        );
+
+        model.addAttribute(
+                "currentPage",
+                page
+        );
+
+        model.addAttribute(
+                "totalPages",
+                categoryPage.getTotalPages()
+        );
+
+        model.addAttribute(
+                "totalItems",
+                categoryPage.getTotalElements()
+        );
+
+        model.addAttribute(
+                "pageSize",
+                size
+        );
 
         return "teacher/category/list";
     }
+
+
     /**
-     * Hiển thị form tạo category mới cho Teacher.
+     * Hiển thị form tạo category mới.
      */
     @GetMapping("/create")
     public String showCreateForm(Model model) {
-        model.addAttribute("categoryDTO", new CategoryDTO());
-        model.addAttribute("isEdit", false);
+
+        model.addAttribute(
+                "categoryDTO",
+                new CategoryDTO()
+        );
+
+        model.addAttribute(
+                "isEdit",
+                false
+        );
 
         return "teacher/category/form";
     }
+
 
     /**
      * Teacher tạo category mới.
      */
     @PostMapping("/create")
     public String createCategory(
-            @ModelAttribute("categoryDTO") CategoryDTO categoryDTO,
+            @ModelAttribute("categoryDTO")
+            CategoryDTO categoryDTO,
             RedirectAttributes redirectAttributes) {
 
         try {
+
             User currentUser = authHelper.getCurrentUser()
                     .orElseThrow(() ->
-                            new IllegalStateException("Người dùng chưa đăng nhập"));
+                            new IllegalStateException(
+                                    "Người dùng chưa đăng nhập"
+                            ));
 
-            categoryService.createCategory(categoryDTO, currentUser);
+            categoryService.createCategory(
+                    categoryDTO,
+                    currentUser
+            );
 
             redirectAttributes.addFlashAttribute(
                     "successMessage",
@@ -114,8 +154,11 @@ public class TeacherCategoryController {
             return "redirect:/teacher/categories/create";
         }
     }
+
+
     /**
      * Hiển thị form chỉnh sửa category.
+     * Chỉ cho phép Teacher sửa category của chính mình.
      */
     @GetMapping("/{id}/edit")
     public String showEditForm(
@@ -124,10 +167,28 @@ public class TeacherCategoryController {
             RedirectAttributes redirectAttributes) {
 
         try {
-            CategoryDTO categoryDTO = categoryService.getCategoryDTOById(id);
 
-            model.addAttribute("categoryDTO", categoryDTO);
-            model.addAttribute("isEdit", true);
+            User currentUser = authHelper.getCurrentUser()
+                    .orElseThrow(() ->
+                            new IllegalStateException(
+                                    "Người dùng chưa đăng nhập"
+                            ));
+
+            CategoryDTO categoryDTO =
+                    categoryService.getCategoryDTOByIdAndUser(
+                            id,
+                            currentUser
+                    );
+
+            model.addAttribute(
+                    "categoryDTO",
+                    categoryDTO
+            );
+
+            model.addAttribute(
+                    "isEdit",
+                    true
+            );
 
             return "teacher/category/form";
 
@@ -145,17 +206,28 @@ public class TeacherCategoryController {
 
     /**
      * Teacher cập nhật category.
+     * Chỉ cho phép cập nhật category của chính mình.
      */
     @PostMapping("/{id}/edit")
     public String updateCategory(
             @PathVariable("id") Long id,
-            @ModelAttribute("categoryDTO") CategoryDTO categoryDTO,
+            @ModelAttribute("categoryDTO")
+            CategoryDTO categoryDTO,
             RedirectAttributes redirectAttributes) {
 
         try {
+
             User currentUser = authHelper.getCurrentUser()
                     .orElseThrow(() ->
-                            new IllegalStateException("Người dùng chưa đăng nhập"));
+                            new IllegalStateException(
+                                    "Người dùng chưa đăng nhập"
+                            ));
+
+            // Kiểm tra category có thuộc Teacher hiện tại hay không
+            categoryService.getCategoryByIdAndUser(
+                    id,
+                    currentUser
+            );
 
             categoryService.updateCategory(
                     id,
@@ -180,8 +252,11 @@ public class TeacherCategoryController {
             return "redirect:/teacher/categories/" + id + "/edit";
         }
     }
+
+
     /**
      * Teacher xóa category.
+     * Chỉ được xóa category của chính mình.
      * Category đang chứa câu hỏi sẽ không được phép xóa.
      */
     @PostMapping("/{id}/delete")
@@ -190,6 +265,18 @@ public class TeacherCategoryController {
             RedirectAttributes redirectAttributes) {
 
         try {
+
+            User currentUser = authHelper.getCurrentUser()
+                    .orElseThrow(() ->
+                            new IllegalStateException(
+                                    "Người dùng chưa đăng nhập"
+                            ));
+
+            // Kiểm tra ownership trước khi xóa
+            categoryService.getCategoryByIdAndUser(
+                    id,
+                    currentUser
+            );
 
             categoryService.deleteCategory(id);
 

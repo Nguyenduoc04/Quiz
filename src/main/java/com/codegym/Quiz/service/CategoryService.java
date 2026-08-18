@@ -103,6 +103,23 @@ public class CategoryService {
 
         categoryRepository.delete(category);
     }
+    public Category getCategoryByIdAndUser(Long id, User user) {
+        Category category = getCategoryById(id);
+
+        if (category.getCreatedBy() == null
+                || !category.getCreatedBy().getId().equals(user.getId())) {
+
+            throw new IllegalStateException(
+                    "Bạn không có quyền truy cập danh mục này!"
+            );
+        }
+
+        return category;
+    }
+    public CategoryDTO getCategoryDTOByIdAndUser(Long id, User user) {
+        Category category = getCategoryByIdAndUser(id, user);
+        return convertToDTO(category);
+    }
 
     public CategoryDTO convertToDTO(Category category) {
         long count = categoryRepository.countQuestionsByCategoryId(category.getId());

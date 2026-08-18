@@ -38,7 +38,11 @@ public class TeacherQuestionController {
 
     /**
      * Teacher xem và tìm kiếm câu hỏi của chính mình.
-     * Hỗ trợ keyword + category + difficulty + pagination.
+     * Hỗ trợ:
+     * - keyword
+     * - category
+     * - difficulty
+     * - pagination
      */
     @GetMapping
     public String listQuestions(
@@ -50,12 +54,17 @@ public class TeacherQuestionController {
             @RequestParam(defaultValue = "10") int size,
             Model model) {
 
+        // Lấy Teacher đang đăng nhập
         User currentUser = authHelper.getCurrentUser()
                 .orElseThrow(() ->
-                        new IllegalStateException("Người dùng chưa đăng nhập"));
+                        new IllegalStateException(
+                                "Người dùng chưa đăng nhập"
+                        ));
 
+        // Pagination
         Pageable pageable = PageRequest.of(page, size);
 
+        // Search Question của chính Teacher
         Page<QuestionDTO> questionPage =
                 questionService.searchQuestionsByUser(
                         currentUser,
@@ -65,29 +74,69 @@ public class TeacherQuestionController {
                         pageable
                 );
 
-        // Chỉ lấy category do Teacher hiện tại tạo.
+        // Chỉ lấy Category của Teacher hiện tại
         List<Category> categories =
                 categoryRepository.findByCreatedBy(currentUser);
 
-        model.addAttribute("questions", questionPage.getContent());
-        model.addAttribute("questionPage", questionPage);
+        // Danh sách Question
+        model.addAttribute(
+                "questions",
+                questionPage.getContent()
+        );
 
-        model.addAttribute("categories", categories);
+        model.addAttribute(
+                "questionPage",
+                questionPage
+        );
+
+        // Category filter
+        model.addAttribute(
+                "categories",
+                categories
+        );
+
+        // Difficulty filter
         model.addAttribute(
                 "difficulties",
                 Question.DifficultyLevel.values()
         );
 
-        // Giữ lại điều kiện search trên giao diện.
-        model.addAttribute("keyword", keyword);
-        model.addAttribute("categoryId", categoryId);
-        model.addAttribute("difficulty", difficulty);
+        // Giữ điều kiện search
+        model.addAttribute(
+                "keyword",
+                keyword
+        );
 
-        // Pagination.
-        model.addAttribute("currentPage", page);
-        model.addAttribute("totalPages", questionPage.getTotalPages());
-        model.addAttribute("totalItems", questionPage.getTotalElements());
-        model.addAttribute("pageSize", size);
+        model.addAttribute(
+                "categoryId",
+                categoryId
+        );
+
+        model.addAttribute(
+                "difficulty",
+                difficulty
+        );
+
+        // Pagination
+        model.addAttribute(
+                "currentPage",
+                page
+        );
+
+        model.addAttribute(
+                "totalPages",
+                questionPage.getTotalPages()
+        );
+
+        model.addAttribute(
+                "totalItems",
+                questionPage.getTotalElements()
+        );
+
+        model.addAttribute(
+                "pageSize",
+                size
+        );
 
         return "teacher/question/list";
     }
