@@ -3,6 +3,7 @@ package com.codegym.Quiz.dto;
 import com.codegym.Quiz.entity.Question;
 import java.util.ArrayList;
 import java.util.List;
+import java.time.LocalDateTime;
 
 public class QuestionDTO {
 
@@ -16,6 +17,7 @@ public class QuestionDTO {
     private String categoryName;
     private Long createdById;
     private String createdByName;
+    private LocalDateTime createdAt;
 
     private List<AnswerDTO> answers = new ArrayList<>();
 
@@ -53,4 +55,12 @@ public class QuestionDTO {
 
     public List<AnswerDTO> getAnswers() { return answers; }
     public void setAnswers(List<AnswerDTO> answers) { this.answers = answers; }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
 }

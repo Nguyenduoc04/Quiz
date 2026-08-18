@@ -163,6 +163,7 @@ public class QuestionService {
         dto.setDifficultyLevel(question.getDifficultyLevel());
         dto.setScore(question.getScore());
         dto.setExplanation(question.getExplanation());
+        dto.setCreatedAt(question.getCreatedAt());
 
         if (question.getCategory() != null) {
             dto.setCategoryId(question.getCategory().getId());
@@ -185,7 +186,9 @@ public class QuestionService {
         }
 
         return dto;
+
     }
+
     /**
      * Teacher tìm kiếm câu hỏi của chính mình
      * theo keyword, category, difficulty và có phân trang.
@@ -213,4 +216,5 @@ public class QuestionService {
 
         return questionPage.map(this::convertToDTO);
     }
+
 }

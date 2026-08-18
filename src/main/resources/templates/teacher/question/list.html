@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Tìm kiếm câu hỏi</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+</head>
+
+<body class="bg-light">
+
+<div class="container py-4">
+
+    <!-- Header -->
+    <div class="mb-4">
+        <h2 class="fw-bold mb-1">
+            Ngân hàng câu hỏi
+        </h2>
+
+        <p class="text-muted mb-0">
+            Tìm kiếm và quản lý các câu hỏi của bạn
+        </p>
+    </div>
+
+
+    <!-- Search -->
+    <div class="card shadow-sm border-0 mb-4">
+
+        <div class="card-body">
+
+            <form th:action="@{/teacher/questions}"
+                  method="get">
+
+                <div class="row g-3 align-items-end">
+
+                    <!-- Keyword -->
+                    <div class="col-lg-4 col-md-6">
+
+                        <label class="form-label fw-semibold">
+                            Từ khóa
+                        </label>
+
+                        <input type="text"
+                               name="keyword"
+                               class="form-control"
+                               placeholder="Nhập nội dung câu hỏi..."
+                               th:value="${keyword}">
+
+                    </div>
+
+
+                    <!-- Category -->
+                    <div class="col-lg-3 col-md-6">
+
+                        <label class="form-label fw-semibold">
+                            Danh mục
+                        </label>
+
+                        <select name="categoryId"
+                                class="form-select">
+
+                            <option value="">
+                                Tất cả danh mục
+                            </option>
+
+                            <option th:each="category : ${categories}"
+                                    th:value="${category.id}"
+                                    th:text="${category.name}"
+                                    th:selected="${categoryId != null
+                                        and category.id == categoryId}">
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- Difficulty -->
+                    <div class="col-lg-2 col-md-6">
+
+                        <label class="form-label fw-semibold">
+                            Độ khó
+                        </label>
+
+                        <select name="difficulty"
+                                class="form-select">
+
+                            <option value="">
+                                Tất cả
+                            </option>
+
+                            <option th:each="level : ${difficulties}"
+                                    th:value="${level}"
+                                    th:text="${level.name() == 'EASY'
+                                        ? 'Dễ'
+                                        : (level.name() == 'MEDIUM'
+                                            ? 'Trung bình'
+                                            : 'Khó')}"
+                                    th:selected="${difficulty != null
+                                        and difficulty == level}">
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- Buttons -->
+                    <div class="col-lg-3 col-md-6">
+
+                        <div class="d-flex gap-2">
+
+                            <button type="submit"
+                                    class="btn btn-primary flex-fill">
+                                Tìm kiếm
+                            </button>
+
+                            <a th:href="@{/teacher/questions}"
+                               class="btn btn-outline-secondary flex-fill">
+                                Đặt lại
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- Tổng kết quả -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+
+        <div class="text-muted">
+
+            Tìm thấy
+
+            <strong th:text="${totalItems}">
+                0
+            </strong>
+
+            câu hỏi
+
+        </div>
+
+    </div>
+
+
+    <!-- Table -->
+    <div class="card shadow-sm border-0">
+
+        <div class="card-body p-0">
+
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle mb-0">
+
+                    <thead class="table-light">
+
+                    <tr>
+                        <th class="ps-3">STT</th>
+                        <th>Nội dung</th>
+                        <th>Danh mục</th>
+                        <th class="text-center">Độ khó</th>
+                        <th>Loại</th>
+                        <th class="text-center">Điểm</th>
+                        <th>Ngày tạo</th>
+                    </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                    <!-- Không có dữ liệu -->
+                    <tr th:if="${#lists.isEmpty(questions)}">
+
+                        <td colspan="7"
+                            class="text-center text-muted py-5">
+
+                            Không tìm thấy câu hỏi nào.
+
+                        </td>
+
+                    </tr>
+
+
+                    <!-- Danh sách câu hỏi -->
+                    <tr th:each="question, stat : ${questions}">
+
+                        <!-- STT -->
+                        <td class="ps-3"
+                            th:text="${currentPage * pageSize + stat.index + 1}">
+                            1
+                        </td>
+
+
+                        <!-- Nội dung -->
+                        <td style="min-width: 300px;">
+
+                            <span th:text="${question.content}">
+                                Nội dung câu hỏi
+                            </span>
+
+                        </td>
+
+
+                        <!-- Danh mục -->
+                        <td>
+
+                            <span class="badge text-bg-light border"
+                                  th:text="${question.categoryName}">
+                                Java
+                            </span>
+
+                        </td>
+
+
+                        <!-- Độ khó -->
+                        <td class="text-center">
+
+                            <span th:if="${question.difficultyLevel != null
+                                    and question.difficultyLevel.name() == 'EASY'}"
+                                  class="badge text-bg-success">
+                                Dễ
+                            </span>
+
+                            <span th:if="${question.difficultyLevel != null
+                                    and question.difficultyLevel.name() == 'MEDIUM'}"
+                                  class="badge text-bg-warning">
+                                Trung bình
+                            </span>
+
+                            <span th:if="${question.difficultyLevel != null
+                                    and question.difficultyLevel.name() == 'HARD'}"
+                                  class="badge text-bg-danger">
+                                Khó
+                            </span>
+
+                        </td>
+
+
+                        <!-- Loại câu hỏi -->
+                        <td>
+
+                            <span th:if="${question.questionType != null}"
+                                  th:switch="${question.questionType.name()}">
+
+                                <span th:case="'SINGLE_CHOICE'">
+                                    Một đáp án
+                                </span>
+
+                                <span th:case="'MULTIPLE_CHOICE'">
+                                    Nhiều đáp án
+                                </span>
+
+                                <span th:case="'TRUE_FALSE'">
+                                    Đúng / Sai
+                                </span>
+
+                                <span th:case="*">
+                                    Không xác định
+                                </span>
+
+                            </span>
+
+                        </td>
+
+
+                        <!-- Điểm -->
+                        <td class="text-center"
+                            th:text="${question.score}">
+                            1.0
+                        </td>
+
+
+                        <!-- Ngày tạo -->
+                        <td th:text="${question.createdAt != null
+                                ? #temporals.format(
+                                    question.createdAt,
+                                    'dd/MM/yyyy HH:mm'
+                                  )
+                                : ''}">
+                        </td>
+
+                    </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- Pagination -->
+    <nav class="mt-4"
+         th:if="${totalPages > 1}">
+
+        <ul class="pagination justify-content-center">
+
+
+            <!-- Previous -->
+            <li class="page-item"
+                th:classappend="${currentPage == 0} ? 'disabled'">
+
+                <a class="page-link"
+                   th:href="@{/teacher/questions(
+                        page=${currentPage - 1},
+                        size=${pageSize},
+                        keyword=${keyword},
+                        categoryId=${categoryId},
+                        difficulty=${difficulty}
+                   )}">
+                    Trước
+                </a>
+
+            </li>
+
+
+            <!-- Page numbers -->
+            <li class="page-item"
+                th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                th:classappend="${i == currentPage} ? 'active'">
+
+                <a class="page-link"
+                   th:text="${i + 1}"
+                   th:href="@{/teacher/questions(
+                        page=${i},
+                        size=${pageSize},
+                        keyword=${keyword},
+                        categoryId=${categoryId},
+                        difficulty=${difficulty}
+                   )}">
+                    1
+                </a>
+
+            </li>
+
+
+            <!-- Next -->
+            <li class="page-item"
+                th:classappend="${currentPage + 1 >= totalPages} ? 'disabled'">
+
+                <a class="page-link"
+                   th:href="@{/teacher/questions(
+                        page=${currentPage + 1},
+                        size=${pageSize},
+                        keyword=${keyword},
+                        categoryId=${categoryId},
+                        difficulty=${difficulty}
+                   )}">
+                    Sau
+                </a>
+
+            </li>
+
+        </ul>
+
+    </nav>
+
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
+</script>
+
+</body>
+</html>
