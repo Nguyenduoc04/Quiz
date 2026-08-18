@@ -15,7 +15,7 @@ import java.util.List;
 
 @Service
 @Transactional
-public class ExamServiceImpl implements ExamService {
+public class ExamServiceImpl extends ExamService {
 
     private final ExamRepository examRepository;
     private final QuestionRepository questionRepository;

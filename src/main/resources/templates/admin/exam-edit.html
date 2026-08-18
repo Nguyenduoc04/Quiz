@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Cập nhật bài thi</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body class="container py-4">
+
+<h2 class="mb-4">Cập Nhật Bài Thi</h2>
+
+<form th:action="@{/admin/exams/update}" th:object="${exam}" method="post" class="card p-3 mb-4 shadow-sm">
+    <input type="hidden" th:field="*{id}">
+    <div class="mb-3">
+        <label class="form-label font-weight-bold">Tên bài thi:</label>
+        <input type="text" th:field="*{title}" class="form-control" required>
+    </div>
+    <div>
+        <button type="submit" class="btn btn-primary">Lưu thông tin bài thi</button>
+        <a href="/admin/exams" class="btn btn-secondary">Quay lại</a>
+    </div>
+</form>
+
+<div class="row">
+    <div class="col-md-7">
+        <h4>Danh sách câu hỏi trong đề (<span th:text="${#lists.size(currentQuestions)}">0</span>)</h4>
+        <table class="table table-bordered table-hover align-middle mt-3">
+            <thead class="table-dark">
+            <tr>
+                <th style="width: 10%">STT</th>
+                <th>Nội dung câu hỏi</th>
+                <th style="width: 15%">Thao tác</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="eq : ${currentQuestions}">
+                <td th:text="${eq.questionOrder}">1</td>
+                <td th:text="${eq.question.content}">Nội dung câu hỏi...</td>
+                <td>
+                    <form th:action="@{/admin/exams/{eId}/remove-question/{qId}(eId=${exam.id}, qId=${eq.question.id})}" method="post">
+                        <button type="submit" class="btn btn-danger btn-sm">Xóa</button>
+                    </form>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(currentQuestions)}">
+                <td colspan="3" class="text-center text-muted">Chưa có câu hỏi nào trong đề thi này.</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="col-md-5">
+        <h4>Thêm câu hỏi vào bài thi</h4>
+        <div class="card p-3 shadow-sm mt-3">
+            <form th:action="@{/admin/exams/{id}/add-question(id=${exam.id})}" method="post">
+                <div class="mb-3">
+                    <label class="form-label">Chọn câu hỏi chưa có trong đề:</label>
+                    <select name="questionId" class="form-select" required>
+                        <option value="">-- Chọn câu hỏi --</option>
+                        <option th:each="q : ${availableQuestions}"
+                                th:value="${q.id}"
+                                th:text="${q.content}"></option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-success w-100">+ Thêm vào bài thi</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
