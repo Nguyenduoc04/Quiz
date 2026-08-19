@@ -67,7 +67,14 @@ public class AuthenticationHelper {
     public Optional<User> getCurrentUser() {
         String username = getCurrentUsername();
         if (username == null) return Optional.empty();
-        return userRepository.findByUsername(username);
+        Optional<User> userOpt = userRepository.findByUsername(username);
+        userOpt.ifPresent(user -> {
+            if (user.getLastLogin() == null || user.getLastLogin().isBefore(java.time.LocalDateTime.now().minusMinutes(1))) {
+                user.setLastLogin(java.time.LocalDateTime.now());
+                userRepository.save(user);
+            }
+        });
+        return userOpt;
     }
 
     /**
@@ -116,13 +123,6 @@ public class AuthenticationHelper {
         return hasRole("ROLE_STUDENT");
     }
 
-    /**
-     * Kiểm tra người dùng là USER thông thường (chưa là student).
-     * USER: có thể làm quiz public nhưng không lưu kết quả.
-     */
-    public boolean isRegularUser() {
-        return hasRole("ROLE_USER") && !isStudent() && !isAdmin();
-    }
 
     /**
      * Kiểm tra người dùng có thể lưu kết quả quiz không.

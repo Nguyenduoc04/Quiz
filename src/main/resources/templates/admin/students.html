@@ -1,195 +1,110 @@
 <!DOCTYPE html>
-<html lang="vi"
-      xmlns:th="http://www.thymeleaf.org">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Quản lý học viên</title>
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-          rel="stylesheet">
+    <title>Quản lý Học viên - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
 </head>
+<body>
 
-<body class="bg-light">
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
 
-<div class="container py-4">
+<div class="admin-main">
+    <div th:replace="~{fragments/header :: header('Quản lý học viên', 'Danh sách và thông tin tài khoản học viên trong hệ thống')}"></div>
 
-    <div class="card shadow-sm border-0">
-        <div class="card-body p-4">
-
-            <!-- Tiêu đề -->
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <div>
-                    <h2 class="mb-1">Quản lý học viên</h2>
-
-                    <p class="text-muted mb-0">
-                        Tổng số kết quả:
-                        <strong th:text="${totalItems}">0</strong>
-                    </p>
-                </div>
-
-                <a th:href="@{/admin/dashboard}"
-                   class="btn btn-outline-secondary">
-                    Quay lại Dashboard
-                </a>
-            </div>
-
-            <!-- Form tìm kiếm -->
-            <form th:action="@{/admin/students}"
-                  method="get"
-                  class="row g-2 mb-4">
-
-                <div class="col-md-8">
-                    <input type="text"
-                           name="keyword"
-                           class="form-control"
-                           placeholder="Tìm theo tên đăng nhập, họ tên hoặc email..."
-                           th:value="${keyword}">
-                </div>
-
-                <div class="col-md-2">
-                    <button type="submit"
-                            class="btn btn-primary w-100">
-                        Tìm kiếm
-                    </button>
-                </div>
-
-                <div class="col-md-2">
-                    <a th:href="@{/admin/students}"
-                       class="btn btn-secondary w-100">
-                        Đặt lại
-                    </a>
-                </div>
-            </form>
-
-            <!-- Hiển thị từ khóa -->
-            <div class="alert alert-secondary"
-                 th:if="${keyword != null and !#strings.isEmpty(keyword)}">
-
-                Kết quả tìm kiếm cho:
-                <strong th:text="${keyword}"></strong>
-            </div>
-
-            <!-- Không có dữ liệu -->
-            <div th:if="${#lists.isEmpty(students)}"
-                 class="alert alert-info">
-
-                <span th:if="${keyword != null and !#strings.isEmpty(keyword)}">
-                    Không tìm thấy học viên phù hợp.
-                </span>
-
-                <span th:unless="${keyword != null and !#strings.isEmpty(keyword)}">
-                    Chưa có học viên nào.
-                </span>
-            </div>
-
-            <!-- Bảng dữ liệu -->
-            <div class="table-responsive"
-                 th:unless="${#lists.isEmpty(students)}">
-
-                <table class="table table-bordered table-hover align-middle">
-                    <thead class="table-dark">
-                    <tr>
-                        <th>STT</th>
-                        <th>Tên đăng nhập</th>
-                        <th>Họ và tên</th>
-                        <th>Email</th>
-                        <th>Trạng thái</th>
-                    </tr>
-                    </thead>
-
-                    <tbody>
-                    <tr th:each="student, status : ${students}">
-
-                        <td th:text="${currentPage * pageSize + status.index + 1}">
-                            1
-                        </td>
-
-                        <td th:text="${student.username}">
-                            username
-                        </td>
-
-                        <td th:text="${student.fullName != null
-                                      and !#strings.isEmpty(student.fullName)
-                                      ? student.fullName
-                                      : 'Chưa cập nhật'}">
-                            Nguyễn Văn A
-                        </td>
-
-                        <td th:text="${student.email}">
-                            email@example.com
-                        </td>
-
-                        <td>
-                            <span th:if="${student.enabled}"
-                                  class="badge bg-success">
-                                Hoạt động
-                            </span>
-
-                            <span th:unless="${student.enabled}"
-                                  class="badge bg-danger">
-                                Bị khóa
-                            </span>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Phân trang -->
-            <nav th:if="${totalPages > 1}">
-                <ul class="pagination justify-content-center mb-0">
-
-                    <!-- Trang trước -->
-                    <li class="page-item"
-                        th:classappend="${currentPage == 0} ? 'disabled'">
-
-                        <a class="page-link"
-                           th:href="@{/admin/students(
-                               page=${currentPage - 1},
-                               size=${pageSize},
-                               keyword=${keyword}
-                           )}">
-                            Trước
-                        </a>
-                    </li>
-
-                    <!-- Các số trang -->
-                    <li class="page-item"
-                        th:each="pageNumber : ${#numbers.sequence(0, totalPages - 1)}"
-                        th:classappend="${pageNumber == currentPage} ? 'active'">
-
-                        <a class="page-link"
-                           th:href="@{/admin/students(
-                               page=${pageNumber},
-                               size=${pageSize},
-                               keyword=${keyword}
-                           )}"
-                           th:text="${pageNumber + 1}">
-                            1
-                        </a>
-                    </li>
-
-                    <!-- Trang sau -->
-                    <li class="page-item"
-                        th:classappend="${currentPage + 1 >= totalPages} ? 'disabled'">
-
-                        <a class="page-link"
-                           th:href="@{/admin/students(
-                               page=${currentPage + 1},
-                               size=${pageSize},
-                               keyword=${keyword}
-                           )}">
-                            Sau
-                        </a>
-                    </li>
-
-                </ul>
-            </nav>
-
+    <main class="admin-content p-4">
+        <!-- Notification Alerts -->
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i><span th:text="${successMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
-    </div>
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i><span th:text="${errorMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
 
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h4 class="mb-1 fw-bold">Danh Sách Học Viên</h4>
+                        <p class="text-muted mb-0">Tổng số: <strong th:text="${totalItems}">0</strong> học viên</p>
+                    </div>
+                </div>
+
+                <!-- Form tìm kiếm -->
+                <form th:action="@{/admin/students}" method="get" class="row g-2 mb-4">
+                    <div class="col-md-9">
+                        <input type="text" name="keyword" class="form-control" placeholder="Tìm theo email, tên hiển thị hoặc username..." th:value="${keyword}">
+                    </div>
+                    <div class="col-md-3 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-search me-1"></i> Tìm kiếm
+                        </button>
+                        <a th:href="@{/admin/students}" class="btn btn-outline-secondary">Đặt lại</a>
+                    </div>
+                </form>
+
+                <!-- Bảng danh sách học viên -->
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle border">
+                        <thead class="table-dark">
+                        <tr>
+                            <th style="width: 50px;">STT</th>
+                            <th>Email</th>
+                            <th>Tên hiển thị</th>
+                            <th>Ngày tạo tài khoản</th>
+                            <th>Lượt truy cập cuối</th>
+                            <th style="width: 100px;" class="text-center">Thao tác</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="student, stat : ${students}">
+                            <td th:text="${currentPage * pageSize + stat.index + 1}">1</td>
+                            <td class="fw-semibold" th:text="${student.email}">email@example.com</td>
+                            <td th:text="${student.fullName != null and !#strings.isEmpty(student.fullName) ? student.fullName : student.username}">Nguyễn Văn A</td>
+                            <td th:text="${student.createdAt != null ? #temporals.format(student.createdAt, 'dd/MM/yyyy HH:mm') : 'N/A'}">01/01/2026</td>
+                            <td th:text="${student.lastLogin != null ? #temporals.format(student.lastLogin, 'dd/MM/yyyy HH:mm') : 'Chưa đăng nhập'}">Vừa xong</td>
+                            <td class="text-center">
+                                <form th:action="@{/admin/students/{id}/delete(id=${student.id})}" method="post" class="d-inline"
+                                      th:onsubmit="return confirm('Bạn có chắc chắn muốn xóa tài khoản học viên này?');">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa tài khoản">
+                                        <i class="bi bi-trash"></i> Xóa
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(students)}">
+                            <td colspan="6" class="text-center py-4 text-muted">
+                                Không tìm thấy học viên nào.
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Phân trang (20 items/page) -->
+                <nav th:if="${totalPages > 1}" class="mt-4">
+                    <ul class="pagination justify-content-center mb-0">
+                        <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                            <a class="page-link" th:href="@{/admin/students(page=${currentPage - 1}, keyword=${keyword})}">Trước</a>
+                        </li>
+                        <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}" th:classappend="${i == currentPage} ? 'active'">
+                            <a class="page-link" th:href="@{/admin/students(page=${i}, keyword=${keyword})}" th:text="${i + 1}">1</a>
+                        </li>
+                        <li class="page-item" th:classappend="${currentPage + 1 >= totalPages} ? 'disabled'">
+                            <a class="page-link" th:href="@{/admin/students(page=${currentPage + 1}, keyword=${keyword})}">Sau</a>
+                        </li>
+                    </ul>
+                </nav>
+
+            </div>
+        </div>
+    </main>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
