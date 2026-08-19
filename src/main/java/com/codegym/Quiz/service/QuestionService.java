@@ -33,6 +33,14 @@ public class QuestionService {
         this.categoryRepository = categoryRepository;
     }
 
+    public List<Question> getAllQuestions() {
+        return questionRepository.findAll();
+    }
+
+    public List<Question> getQuestionsByCategoryId(Long categoryId) {
+        return questionRepository.findByCategoryId(categoryId);
+    }
+
     public Page<QuestionDTO> getAllQuestionsPaged(String keyword, Pageable pageable) {
         Page<Question> questionPage;
         if (keyword != null && !keyword.trim().isEmpty()) {
@@ -181,3 +189,4 @@ public class QuestionService {
         return dto;
     }
 }
+

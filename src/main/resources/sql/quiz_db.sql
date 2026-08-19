@@ -107,3 +107,24 @@ JOIN user_roles ur ON u.id = ur.user_id
 JOIN roles r       ON ur.role_id = r.id
 ORDER BY u.id;
 
+-- ============================================================
+-- 9. Bổ sung các bảng Quiz / Exam
+-- ============================================================
+CREATE TABLE IF NOT EXISTS exams (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS questions (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    content TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS exam_questions (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    exam_id BIGINT NOT NULL,
+    question_id BIGINT NOT NULL,
+    question_order INT NOT NULL,
+    FOREIGN KEY (exam_id) REFERENCES exams(id) ON DELETE CASCADE,
+    FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE
+);

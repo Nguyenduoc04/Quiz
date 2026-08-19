@@ -40,6 +40,10 @@ public class ExamQuestion {
 
     public ExamQuestion() {}
 
+    public ExamQuestion(Exam exam, Question question, Integer questionOrder) {
+        this(exam, question, questionOrder, null);
+    }
+
     public ExamQuestion(Exam exam, Question question, Integer questionOrder, Double customScore) {
         this.exam = exam;
         this.question = question;
@@ -64,3 +68,4 @@ public class ExamQuestion {
     public Double getCustomScore() { return customScore; }
     public void setCustomScore(Double customScore) { this.customScore = customScore; }
 }
+

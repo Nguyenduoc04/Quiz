@@ -58,12 +58,12 @@ public class Question {
 
     /** Danh mục câu hỏi */
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id", nullable = false)
+    @JoinColumn(name = "category_id")
     private Category category;
 
     /** Người tạo câu hỏi */
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "created_by", nullable = false)
+    @JoinColumn(name = "created_by")
     private User createdBy;
 
     /** Thời điểm tạo */
@@ -94,6 +94,10 @@ public class Question {
     // ─── Constructors ──────────────────────────────────────────────────────
 
     public Question() {}
+
+    public Question(String content) {
+        this.content = content;
+    }
 
     public Question(String content, QuestionType questionType, DifficultyLevel difficultyLevel,
                     Double score, Category category, User createdBy) {
@@ -140,3 +144,4 @@ public class Question {
     public List<Answer> getAnswers() { return answers; }
     public void setAnswers(List<Answer> answers) { this.answers = answers; }
 }
+

@@ -14,13 +14,6 @@ import java.util.List;
 @Table(name = "exams")
 public class Exam {
 
-    /** Trạng thái bài thi */
-    public enum ExamStatus {
-        DRAFT,      // Bản nháp – chưa công bố
-        PUBLISHED,  // Đã công bố – học sinh có thể làm
-        CLOSED      // Đã đóng – không còn nhận bài làm
-    }
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -52,7 +45,7 @@ public class Exam {
 
     /** Giáo viên tạo bài thi */
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "created_by", nullable = false)
+    @JoinColumn(name = "created_by")
     private User createdBy;
 
     /** Thời điểm tạo */
@@ -129,3 +122,4 @@ public class Exam {
     public List<ExamQuestion> getExamQuestions() { return examQuestions; }
     public void setExamQuestions(List<ExamQuestion> examQuestions) { this.examQuestions = examQuestions; }
 }
+

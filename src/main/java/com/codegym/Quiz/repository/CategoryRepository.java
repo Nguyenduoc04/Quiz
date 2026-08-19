@@ -60,3 +60,4 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     /** Tìm danh mục theo tên chính xác */
     Optional<Category> findByName(String name);
 }
+

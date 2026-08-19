@@ -52,4 +52,8 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
 
     /** Kiểm tra xem câu hỏi có thuộc danh mục này không */
     boolean existsByCategoryId(Long categoryId);
+
+    List<Question> findByIdNotIn(List<Long> ids);
+    List<Question> findByCategoryId(Long categoryId);
 }
+
