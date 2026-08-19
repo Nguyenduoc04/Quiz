@@ -22,5 +22,7 @@ public interface ExamRepository extends JpaRepository<Exam, Long> {
     List<Exam> findByStatus(ExamStatus status);
 
     List<Exam> findByCreatedBy(User createdBy);
+
+    List<Exam> findByCreatedByUsername(String username);
 }
 

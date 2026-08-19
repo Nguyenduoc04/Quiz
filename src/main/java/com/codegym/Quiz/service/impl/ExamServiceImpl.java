@@ -45,7 +45,7 @@ public class ExamServiceImpl implements ExamService {
     @Override
     @Transactional(readOnly = true)
     public List<Exam> getExamsByCreatedBy(String createdBy) {
-        return examRepository.findByCreatedBy(createdBy);
+        return examRepository.findByCreatedByUsername(createdBy);
     }
 
     @Override
