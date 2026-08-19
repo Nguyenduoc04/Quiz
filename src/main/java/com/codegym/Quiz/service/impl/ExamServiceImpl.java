@@ -107,24 +107,27 @@ public class ExamServiceImpl implements ExamService {
 
     @Override
     public void updateExamQuestions(Long examId, List<Long> questionIds) {
-        Exam exam = getExamById(examId);
-        exam.getExamQuestions().clear();
+        // Xóa tất cả câu hỏi cũ và flush ngay xuống DB
+        // để tránh lỗi duplicate key khi INSERT mới trong cùng transaction
+        examQuestionRepository.deleteByExamId(examId);
+        examQuestionRepository.flush();
 
         if (questionIds != null && !questionIds.isEmpty()) {
+            Exam exam = getExamById(examId);
+            List<ExamQuestion> newQuestions = new ArrayList<>();
             int ordinal = 1;
             for (Long qId : questionIds) {
                 Question question = questionRepository.findById(qId)
                         .orElseThrow(() -> new RuntimeException("Không tìm thấy câu hỏi ID: " + qId));
 
-                ExamQuestion examQuestion = new ExamQuestion();
-                examQuestion.setExam(exam);
-                examQuestion.setQuestion(question);
-                examQuestion.setQuestionOrder(ordinal++);
-
-                exam.getExamQuestions().add(examQuestion);
+                ExamQuestion eq = new ExamQuestion();
+                eq.setExam(exam);
+                eq.setQuestion(question);
+                eq.setQuestionOrder(ordinal++);
+                newQuestions.add(eq);
             }
+            examQuestionRepository.saveAll(newQuestions);
         }
-        examRepository.save(exam);
     }
 
     @Override

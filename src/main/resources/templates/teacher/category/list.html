@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Danh Mục Của Tôi - Quiz CodeGym</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; min-height: 100vh; }
+        .main-container { max-width: 1100px; margin: 2rem auto; padding: 0 1.5rem; }
+        .card-custom { background: white; border-radius: 16px; padding: 2rem; box-shadow: 0 4px 24px rgba(0, 0, 0, 0.07); border: none; }
+        .btn-gradient { background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 25px; font-weight: 500; }
+        .btn-gradient:hover { opacity: 0.9; color: white; }
+    </style>
+</head>
+<body>
+
+<!-- Top Navbar -->
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<div class="main-container">
+    <!-- Notification Alerts -->
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show rounded-3 shadow-sm mb-4" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i>
+        <span th:text="${successMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show rounded-3 shadow-sm mb-4" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        <span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div class="card-custom">
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <div>
+                <h2 class="fw-bold mb-1" style="color: #1a1a2e;">📁 Danh Mục Của Tôi</h2>
+                <p class="text-muted mb-0">Quản lý các danh mục câu hỏi do bạn tạo. Tổng số: <strong th:text="${totalItems}">0</strong> danh mục</p>
+            </div>
+            <a th:href="@{/teacher/categories/create}" class="btn btn-gradient px-4 py-2">
+                <i class="bi bi-plus-lg me-1"></i> Tạo mới danh mục
+            </a>
+        </div>
+
+        <!-- Form tìm kiếm -->
+        <form th:action="@{/teacher/categories}" method="get" class="row g-2 mb-4">
+            <div class="col-md-9">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                    <input type="text" name="keyword" class="form-control border-start-0 ps-0" placeholder="Tìm theo tên hoặc mô tả danh mục..." th:value="${keyword}">
+                </div>
+            </div>
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-primary w-100 rounded-3" style="background-color: #667eea; border: none;">Tìm kiếm</button>
+                <a th:href="@{/teacher/categories}" class="btn btn-outline-secondary rounded-3">Đặt lại</a>
+            </div>
+        </form>
+
+        <!-- Bảng danh mục -->
+        <div class="table-responsive">
+            <table class="table table-hover align-middle border-0">
+                <thead style="background-color: #f8f9fa;">
+                <tr>
+                    <th style="width: 50px;">STT</th>
+                    <th>Tên danh mục</th>
+                    <th>Mô tả</th>
+                    <th>Người tạo</th>
+                    <th class="text-center">Số câu hỏi</th>
+                    <th style="width: 150px;" class="text-center">Thao tác</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="cat, stat : ${categories}">
+                    <td th:text="${currentPage * pageSize + stat.index + 1}">1</td>
+                    <td class="fw-semibold text-dark" th:text="${cat.name}">Tên danh mục</td>
+                    <td class="text-muted" th:text="${#strings.abbreviate(cat.description, 60)}">Mô tả danh mục</td>
+                    <td>
+                        <span class="badge" style="background-color: #e8f0fe; color: #3949ab; border: 1px solid #c5cae9;" th:text="${cat.createdByName}">Teacher</span>
+                    </td>
+                    <td class="text-center">
+                        <span class="badge bg-secondary rounded-pill" th:text="${cat.questionCount}">0</span>
+                    </td>
+                    <td class="text-center">
+                        <a th:href="@{/teacher/categories/{id}/edit(id=${cat.id})}" class="btn btn-sm btn-light border me-1" title="Sửa">
+                            <i class="bi bi-pencil text-warning"></i>
+                        </a>
+                        <form th:action="@{/teacher/categories/{id}/delete(id=${cat.id})}" method="post" class="d-inline"
+                              th:onsubmit="return confirm('Bạn có chắc chắn muốn xóa danh mục này?');">
+                            <button type="submit" class="btn btn-sm btn-light border" title="Xóa">
+                                <i class="bi bi-trash text-danger"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(categories)}">
+                    <td colspan="6" class="text-center py-5 text-muted">
+                        <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                        Không tìm thấy danh mục nào.
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Phân trang -->
+        <nav th:if="${totalPages > 1}" class="mt-4">
+            <ul class="pagination justify-content-center mb-0">
+                <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                    <a class="page-link" th:href="@{/teacher/categories(page=${currentPage - 1}, keyword=${keyword})}">Trước</a>
+                </li>
+                <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}" th:classappend="${i == currentPage} ? 'active'">
+                    <a class="page-link" th:href="@{/teacher/categories(page=${i}, keyword=${keyword})}" th:text="${i + 1}">1</a>
+                </li>
+                <li class="page-item" th:classappend="${currentPage + 1 >= totalPages} ? 'disabled'">
+                    <a class="page-link" th:href="@{/teacher/categories(page=${currentPage + 1}, keyword=${keyword})}">Sau</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

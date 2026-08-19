@@ -141,16 +141,25 @@
                                 class="custom-dropdown-item" style="font-weight: 600;">
                                 🛡️ Trang Quản Trị
                             </a>
-                            <!-- Quyền Teacher hoặc Admin -->
-                            <a sec:authorize="hasAnyRole('TEACHER', 'ADMIN')" th:href="@{/teacher/questions}"
+                            <!-- Quyền Teacher (không phải Admin) -->
+                            <a sec:authorize="hasRole('TEACHER') and !hasRole('ADMIN')" th:href="@{/teacher/categories}"
+                                class="custom-dropdown-item" style="font-weight: 600;">
+                                📁 Danh mục của tôi
+                            </a>
+                            <a sec:authorize="hasRole('TEACHER') and !hasRole('ADMIN')" th:href="@{/teacher/questions}"
                                 class="custom-dropdown-item" style="font-weight: 600;">
                                 📚 Ngân Hàng Câu Hỏi
                             </a>
-                            <a href="#" class="custom-dropdown-item"
+                            <a sec:authorize="hasRole('TEACHER') and !hasRole('ADMIN')" th:href="@{/teacher/exams}"
+                                class="custom-dropdown-item" style="font-weight: 600;">
+                                📝 Danh sách bài thi
+                            </a>
+                            <!-- Chỉ hiển thị cho tài khoản CHƯA phải là Teacher hoặc Admin -->
+                            <a sec:authorize="!hasAnyRole('TEACHER', 'ADMIN')" href="#" class="custom-dropdown-item"
                                 onclick="event.preventDefault(); if(confirm('Bạn muốn gửi yêu cầu Đăng ký làm Giáo viên?')) document.getElementById('requestTeacherFormNav').submit();">
                                 👨‍🏫 Đăng ký làm Giáo viên
                             </a>
-                            <form id="requestTeacherFormNav" th:action="@{/user/request-teacher}" method="post"
+                            <form sec:authorize="!hasAnyRole('TEACHER', 'ADMIN')" id="requestTeacherFormNav" th:action="@{/user/request-teacher}" method="post"
                                 style="display:none;"></form>
                             <form th:action="@{/auth/logout}" method="post" style="margin:0">
                                 <button type="submit" class="custom-dropdown-item logout-btn">

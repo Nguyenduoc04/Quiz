@@ -233,13 +233,13 @@ public class UserService {
         userRepository.save(user);
     }
     public Page<User> getStudents(Pageable pageable) {
-        return userRepository.findByRoles_Name(
+        return userRepository.findByRoles_NameOrderByCreatedAtDesc(
                 RoleConstants.ROLE_STUDENT,
                 pageable
         );
     }
     public Page<User> getTeachers(Pageable pageable) {
-        return userRepository.findByRoles_Name(
+        return userRepository.findByRoles_NameOrderByCreatedAtDesc(
                 com.codegym.Quiz.constant.RoleConstants.ROLE_TEACHER,
                 pageable
         );

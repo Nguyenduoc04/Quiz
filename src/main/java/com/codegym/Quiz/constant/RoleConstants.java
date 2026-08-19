@@ -13,6 +13,4 @@ public final class RoleConstants {
     public static final String ROLE_TEACHER = "ROLE_TEACHER";
     public static final String ROLE_PENDING_TEACHER = "ROLE_PENDING_TEACHER";
     public static final String ROLE_STUDENT = "ROLE_STUDENT";
-    public static final String ROLE_GUEST = "ROLE_GUEST";
-    public static final String ROLE_USER = "ROLE_USER";
 }

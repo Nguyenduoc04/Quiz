@@ -12,9 +12,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import jakarta.servlet.http.HttpServletRequest;
 
 @Controller
-@RequestMapping("/teacher/questions")
+@RequestMapping({"/admin/questions", "/teacher/questions"})
 public class QuestionController {
 
     private final QuestionService questionService;
@@ -29,68 +30,100 @@ public class QuestionController {
         this.authHelper = authHelper;
     }
 
-    /** Inject fullName vào Model để Navbar hiển thị đúng họ tên đầy đủ */
-    private void injectFullName(Model model) {
+    private String getBaseUrl(HttpServletRequest request) {
+        String uri = request.getRequestURI();
+        if (uri.startsWith("/admin")) {
+            return "/admin/questions";
+        }
+        return "/teacher/questions";
+    }
+
+    private boolean isAdminView(HttpServletRequest request) {
+        return request.getRequestURI().startsWith("/admin");
+    }
+
+    /** Inject fullName & view metadata vào Model */
+    private void injectViewMetadata(Model model, HttpServletRequest request) {
         authHelper.getCurrentUser().ifPresent(user -> {
             String displayName = (user.getFullName() != null && !user.getFullName().isBlank())
                     ? user.getFullName()
                     : user.getUsername();
             model.addAttribute("fullName", displayName);
         });
+        model.addAttribute("baseUrl", getBaseUrl(request));
+        model.addAttribute("isAdminView", isAdminView(request));
     }
 
-    /** US 26: Giáo viên xem danh sách câu hỏi trong hệ thống (Phân trang) */
+    private String getViewPath(HttpServletRequest request, String pageName) {
+        if (isAdminView(request)) {
+            return "admin/question/" + pageName;
+        }
+        return "teacher/question/" + pageName;
+    }
+
     @GetMapping
     public String listQuestions(
-            @RequestParam(defaultValue = "") String keyword,
+            @RequestParam(value = "keyword", required = false) String keyword,
+            @RequestParam(value = "categoryId", required = false) Long categoryId,
+            @RequestParam(value = "difficulty", required = false) String difficultyStr,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            Model model) {
+            Model model,
+            HttpServletRequest request) {
 
-        injectFullName(model);
+        injectViewMetadata(model, request);
+
+        com.codegym.Quiz.entity.Question.DifficultyLevel difficulty = null;
+        if (difficultyStr != null && !difficultyStr.isBlank()) {
+            try {
+                difficulty = com.codegym.Quiz.entity.Question.DifficultyLevel.valueOf(difficultyStr);
+            } catch (IllegalArgumentException ignored) {}
+        }
 
         Pageable pageable = PageRequest.of(page, size);
-        Page<QuestionDTO> questionPage = questionService.getAllQuestionsPaged(keyword, pageable);
+        Page<QuestionDTO> questionPage = questionService.searchQuestions(keyword, categoryId, difficulty, pageable);
 
         model.addAttribute("questions", questionPage.getContent());
         model.addAttribute("questionPage", questionPage);
-        model.addAttribute("keyword", keyword);
+        model.addAttribute("keyword", keyword != null ? keyword : "");
+        model.addAttribute("selectedCategoryId", categoryId);
+        model.addAttribute("selectedDifficulty", difficultyStr != null ? difficultyStr : "");
+        model.addAttribute("categories", categoryService.getAllCategoryDTOs());
+        model.addAttribute("difficultyLevels", com.codegym.Quiz.entity.Question.DifficultyLevel.values());
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", questionPage.getTotalPages());
         model.addAttribute("totalItems", questionPage.getTotalElements());
         model.addAttribute("pageSize", size);
 
-        return "question/list";
+        return getViewPath(request, "list");
     }
 
-    /** US 25: Giáo viên xem chi tiết 1 câu hỏi */
     @GetMapping("/{id}")
-    public String viewQuestionDetail(@PathVariable("id") Long id, Model model, RedirectAttributes redirectAttributes) {
+    public String viewQuestionDetail(@PathVariable("id") Long id, Model model, HttpServletRequest request, RedirectAttributes redirectAttributes) {
         try {
-            injectFullName(model);
+            injectViewMetadata(model, request);
             QuestionDTO questionDTO = questionService.getQuestionDTOById(id);
             model.addAttribute("question", questionDTO);
-            return "question/detail";
+            return getViewPath(request, "detail");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
-            return "redirect:/teacher/questions";
+            return "redirect:" + getBaseUrl(request);
         }
     }
 
-    /** Form tạo mới câu hỏi */
     @GetMapping("/create")
-    public String showCreateForm(Model model) {
-        injectFullName(model);
+    public String showCreateForm(Model model, HttpServletRequest request) {
+        injectViewMetadata(model, request);
         model.addAttribute("questionDTO", new QuestionDTO());
         model.addAttribute("categories", categoryService.getAllCategoryDTOs());
         model.addAttribute("isEdit", false);
-        return "question/form";
+        return getViewPath(request, "form");
     }
 
-    /** US 23: Giáo viên tạo mới 1 câu hỏi */
     @PostMapping("/create")
     public String createQuestion(
             @ModelAttribute("questionDTO") QuestionDTO questionDTO,
+            HttpServletRequest request,
             RedirectAttributes redirectAttributes) {
         try {
             User currentUser = authHelper.getCurrentUser()
@@ -98,34 +131,33 @@ public class QuestionController {
 
             questionService.createQuestion(questionDTO, currentUser);
             redirectAttributes.addFlashAttribute("successMessage", "Tạo câu hỏi thành công!");
-            return "redirect:/teacher/questions";
+            return "redirect:" + getBaseUrl(request);
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
-            return "redirect:/teacher/questions/create";
+            return "redirect:" + getBaseUrl(request) + "/create";
         }
     }
 
-    /** Form cập nhật câu hỏi */
     @GetMapping("/{id}/edit")
-    public String showEditForm(@PathVariable("id") Long id, Model model, RedirectAttributes redirectAttributes) {
+    public String showEditForm(@PathVariable("id") Long id, Model model, HttpServletRequest request, RedirectAttributes redirectAttributes) {
         try {
-            injectFullName(model);
+            injectViewMetadata(model, request);
             QuestionDTO questionDTO = questionService.getQuestionDTOById(id);
             model.addAttribute("questionDTO", questionDTO);
             model.addAttribute("categories", categoryService.getAllCategoryDTOs());
             model.addAttribute("isEdit", true);
-            return "question/form";
+            return getViewPath(request, "form");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
-            return "redirect:/teacher/questions";
+            return "redirect:" + getBaseUrl(request);
         }
     }
 
-    /** US 24: Giáo viên cập nhật thông tin 1 câu hỏi */
     @PostMapping("/{id}/edit")
     public String updateQuestion(
             @PathVariable("id") Long id,
             @ModelAttribute("questionDTO") QuestionDTO questionDTO,
+            HttpServletRequest request,
             RedirectAttributes redirectAttributes) {
         try {
             User currentUser = authHelper.getCurrentUser()
@@ -133,22 +165,21 @@ public class QuestionController {
 
             questionService.updateQuestion(id, questionDTO, currentUser);
             redirectAttributes.addFlashAttribute("successMessage", "Cập nhật câu hỏi thành công!");
-            return "redirect:/teacher/questions";
+            return "redirect:" + getBaseUrl(request);
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
-            return "redirect:/teacher/questions/" + id + "/edit";
+            return "redirect:" + getBaseUrl(request) + "/" + id + "/edit";
         }
     }
 
-    /** US 27: Giáo viên xóa 1 câu hỏi */
     @PostMapping("/{id}/delete")
-    public String deleteQuestion(@PathVariable("id") Long id, RedirectAttributes redirectAttributes) {
+    public String deleteQuestion(@PathVariable("id") Long id, HttpServletRequest request, RedirectAttributes redirectAttributes) {
         try {
             questionService.deleteQuestion(id);
             redirectAttributes.addFlashAttribute("successMessage", "Xóa câu hỏi thành công!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }
-        return "redirect:/teacher/questions";
+        return "redirect:" + getBaseUrl(request);
     }
 }

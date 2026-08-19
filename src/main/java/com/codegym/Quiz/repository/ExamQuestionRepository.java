@@ -12,9 +12,12 @@ import java.util.Optional;
 @Repository
 public interface ExamQuestionRepository extends JpaRepository<ExamQuestion, Long> {
 
-    List<ExamQuestion> findByExamIdOrderByQuestionOrderAsc(Long examId);
+    @Query("SELECT eq FROM ExamQuestion eq JOIN FETCH eq.question WHERE eq.exam.id = :examId ORDER BY eq.questionOrder ASC")
+    List<ExamQuestion> findByExamIdOrderByQuestionOrderAsc(@Param("examId") Long examId);
 
     boolean existsByExamIdAndQuestionId(Long examId, Long questionId);
+
+    boolean existsByQuestionId(Long questionId);
 
     @Query("SELECT MAX(eq.questionOrder) FROM ExamQuestion eq WHERE eq.exam.id = :examId")
     Optional<Integer> findMaxOrderNumByExamId(@Param("examId") Long examId);

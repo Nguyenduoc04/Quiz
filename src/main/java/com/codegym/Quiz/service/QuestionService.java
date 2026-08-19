@@ -24,13 +24,16 @@ public class QuestionService {
     private final QuestionRepository questionRepository;
     private final AnswerRepository answerRepository;
     private final CategoryRepository categoryRepository;
+    private final com.codegym.Quiz.repository.ExamQuestionRepository examQuestionRepository;
 
     public QuestionService(QuestionRepository questionRepository,
                            AnswerRepository answerRepository,
-                           CategoryRepository categoryRepository) {
+                           CategoryRepository categoryRepository,
+                           com.codegym.Quiz.repository.ExamQuestionRepository examQuestionRepository) {
         this.questionRepository = questionRepository;
         this.answerRepository = answerRepository;
         this.categoryRepository = categoryRepository;
+        this.examQuestionRepository = examQuestionRepository;
     }
 
     public List<Question> getAllQuestions() {
@@ -128,11 +131,10 @@ public class QuestionService {
         question.setExplanation(dto.getExplanation());
         question.setCategory(category);
 
-        // Cập nhật đáp án: Xóa cũ và thêm mới
-        answerRepository.deleteByQuestionId(id);
+        // Cập nhật đáp án: Xóa cũ và thêm mới vào collection được quản lý bởi Hibernate
+        question.getAnswers().clear();
 
         if (dto.getAnswers() != null && !dto.getAnswers().isEmpty()) {
-            List<Answer> answers = new ArrayList<>();
             int order = 1;
             for (AnswerDTO aDto : dto.getAnswers()) {
                 if (aDto.getContent() != null && !aDto.getContent().trim().isEmpty()) {
@@ -141,11 +143,9 @@ public class QuestionService {
                     answer.setCorrect(aDto.isCorrect());
                     answer.setDisplayOrder(order++);
                     answer.setQuestion(question);
-                    answers.add(answer);
+                    question.getAnswers().add(answer);
                 }
             }
-            answerRepository.saveAll(answers);
-            question.setAnswers(answers);
         }
 
         return questionRepository.save(question);
@@ -154,6 +154,9 @@ public class QuestionService {
     @Transactional
     public void deleteQuestion(Long id) {
         Question question = getQuestionById(id);
+        if (examQuestionRepository.existsByQuestionId(id)) {
+            throw new IllegalStateException("Không thể xóa câu hỏi đang thuộc bài thi! Vui lòng gỡ câu hỏi khỏi bài thi trước.");
+        }
         questionRepository.delete(question);
     }
 

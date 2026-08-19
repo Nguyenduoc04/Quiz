@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý Đề Thi - Quiz CodeGym</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; min-height: 100vh; }
+        .main-container { max-width: 1100px; margin: 2rem auto; padding: 0 1.5rem; }
+        .card-custom { background: white; border-radius: 16px; padding: 2rem; box-shadow: 0 4px 24px rgba(0, 0, 0, 0.07); border: none; }
+        .btn-gradient { background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 25px; font-weight: 500; }
+        .btn-gradient:hover { opacity: 0.9; color: white; }
+    </style>
+</head>
+<body>
+
+<!-- Top Navbar -->
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<div class="main-container">
+    <div class="card-custom">
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <div>
+                <h2 class="fw-bold mb-1" style="color: #1a1a2e;">📝 Danh Sách Đề Thi</h2>
+                <p class="text-muted mb-0">Tạo mới và thiết lập danh sách câu hỏi cho đề thi</p>
+            </div>
+            <a th:href="@{/teacher/exams/create}" class="btn btn-gradient px-4 py-2">
+                <i class="bi bi-plus-lg me-1"></i> Tạo mới đề thi
+            </a>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle border-0">
+                <thead style="background-color: #f8f9fa;">
+                <tr>
+                    <th style="width: 50px;">ID</th>
+                    <th>Thông tin đề thi</th>
+                    <th>Thời gian</th>
+                    <th>Trạng thái</th>
+                    <th>Người tạo</th>
+                    <th style="width: 160px;" class="text-center">Thao tác</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="exam : ${exams}">
+                    <td class="fw-bold" th:text="${'#' + exam.id}">#1</td>
+                    <td>
+                        <strong class="d-block text-dark" th:text="${exam.title}">Đề thi Java Core</strong>
+                        <small class="text-muted" th:text="${exam.description}">Mô tả ngắn...</small>
+                    </td>
+                    <td th:text="${exam.durationMinutes + ' phút'}">60 phút</td>
+                    <td>
+                        <span th:if="${exam.status.name() == 'ACTIVE' or exam.status.name() == 'PUBLISHED'}" class="badge bg-success">Hoạt động</span>
+                        <span th:if="${exam.status.name() == 'DRAFT'}" class="badge bg-warning text-dark">Bản nháp</span>
+                        <span th:if="${exam.status.name() == 'INACTIVE' or exam.status.name() == 'CLOSED'}" class="badge bg-secondary">Đã đóng</span>
+                    </td>
+                    <td th:text="${exam.createdBy != null ? (exam.createdBy.fullName != null ? exam.createdBy.fullName : exam.createdBy.username) : 'N/A'}">Teacher</td>
+                    <td class="text-center">
+                        <a th:href="@{/teacher/exams/edit/{id}(id=${exam.id})}" class="btn btn-sm btn-light border me-1" title="Chỉnh sửa & Quản lý câu hỏi">
+                            <i class="bi bi-pencil text-warning me-1"></i> Sửa
+                        </a>
+                        <a th:href="@{/teacher/exams/delete/{id}(id=${exam.id})}" class="btn btn-sm btn-light border" title="Xóa" onclick="return confirm('Bạn có chắc chắn muốn xóa bài thi này?')">
+                            <i class="bi bi-trash text-danger"></i>
+                        </a>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(exams)}">
+                    <td colspan="6" class="text-center py-5 text-muted">
+                        <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                        Chưa có đề thi nào trong hệ thống.
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
