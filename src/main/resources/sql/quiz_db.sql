@@ -74,8 +74,8 @@ SET @pw = '$2a$10$XvxijM6iKkADF83jqQRz0.CLsx3KD5yD1KJkz7/IOoSZutbrt9B2W';
 
 INSERT INTO users (id, username, password, email, full_name, enabled, created_at) VALUES
     (1, 'admin',    @pw, 'admin@quiz.com',    'Administrator', TRUE, NOW()),
-    (2, 'student1', @pw, 'student1@quiz.com', 'Nguyễn Văn An', TRUE, NOW()),
-    (3, 'teacher1', @pw, 'teacher1@quiz.com', 'Trần Thị Bình', TRUE, NOW());
+    (2, 'student', @pw, 'student1@quiz.com', 'Nguyễn Văn An', TRUE, NOW()),
+    (3, 'teacher', @pw, 'teacher1@quiz.com', 'Trần Thị Bình', TRUE, NOW());
 
 -- ============================================================
 -- 7. Gán quyền mẫu
