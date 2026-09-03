@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Đề thi - Quiz CodeGym Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f0f4f8; color: #1a1a2e; min-height: 100vh; display: flex; flex-direction: column; }
+        .main-container { max-width: 1200px; margin: 2rem auto; padding: 0 1.5rem; flex: 1; width: 100%; }
+
+        /* DASHBOARD STATS */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.2rem; margin-bottom: 2rem; }
+        .stat-card { background: white; border-radius: 16px; padding: 1.25rem 1.5rem; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; }
+        .stat-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; }
+        .stat-info h3 { font-size: 1.5rem; font-weight: 800; color: #0f172a; }
+        .stat-info p { font-size: 0.82rem; color: #64748b; font-weight: 600; }
+
+        /* TABLE CONTAINER */
+        .card-panel { background: white; border-radius: 16px; border: 1px solid #e2e8f0; padding: 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
+        .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
+        .panel-title { font-size: 1.2rem; font-weight: 700; color: #0f172a; display: flex; align-items: center; gap: 0.5rem; }
+
+        .btn-create { background: #667eea; color: white; border: none; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 600; font-size: 0.88rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem; transition: 0.2s; }
+        .btn-create:hover { background: #5a67d8; }
+
+        /* TABLE STYLES */
+        .table-responsive { overflow-x: auto; }
+        .admin-table { width: 100%; border-collapse: collapse; text-align: left; }
+        .admin-table th { background: #f8fafc; padding: 0.8rem 1rem; font-size: 0.82rem; font-weight: 700; color: #475569; border-bottom: 1px solid #e2e8f0; }
+        .admin-table td { padding: 1rem; border-bottom: 1px solid #f1f5f9; font-size: 0.88rem; color: #1e293b; vertical-align: middle; }
+
+        .status-badge { padding: 0.2rem 0.6rem; border-radius: 6px; font-size: 0.75rem; font-weight: 700; display: inline-block; }
+        .status-published { background: #dcfce7; color: #15803d; }
+        .status-draft { background: #f1f5f9; color: #64748b; }
+
+        .action-btns { display: flex; gap: 0.5rem; }
+        .btn-act { width: 32px; height: 32px; border-radius: 6px; border: 1px solid #e2e8f0; background: white; color: #475569; display: flex; align-items: center; justify-content: center; cursor: pointer; text-decoration: none; transition: 0.2s; }
+        .btn-act:hover { background: #f8fafc; color: #667eea; border-color: #667eea; }
+        .btn-act.danger:hover { color: #ef4444; border-color: #ef4444; background: #fef2f2; }
+
+        /* MODAL */
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center; }
+        .modal-card { background: white; padding: 2rem; border-radius: 16px; width: 100%; max-width: 550px; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; }
+        .form-group { margin-bottom: 1rem; }
+        .form-label { font-size: 0.85rem; font-weight: 600; color: #475569; margin-bottom: 0.4rem; display: block; }
+        .form-control, .form-select { width: 100%; padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem; outline: none; }
+        .modal-footer { display: flex; justify-content: flex-end; gap: 0.8rem; margin-top: 1.5rem; }
+        .btn-cancel { background: #f1f5f9; border: none; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 600; color: #475569; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="main-container">
+
+    <!-- Thống kê tổng quan -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-info">
+                <h3>24</h3>
+                <p>Tổng bài thi</p>
+            </div>
+            <div class="stat-icon" style="background:#e0e7ff; color:#4f46e5;"><i class="bi bi-file-earmark-text"></i></div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-info">
+                <h3>18</h3>
+                <p>Đã xuất bản</p>
+            </div>
+            <div class="stat-icon" style="background:#dcfce7; color:#16a34a;"><i class="bi bi-check-circle"></i></div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-info">
+                <h3>6</h3>
+                <p>Bản nháp</p>
+            </div>
+            <div class="stat-icon" style="background:#f1f5f9; color:#64748b;"><i class="bi bi-pencil-square"></i></div>
+        </div>
+    </div>
+
+    <!-- Bảng danh sách bài thi -->
+    <section class="card-panel">
+        <div class="panel-header">
+            <div class="panel-title">
+                <i class="bi bi-journal-check" style="color:#667eea;"></i> Quản lý Đề thi
+            </div>
+            <button type="button" class="btn-create" onclick="openModal()"><i class="bi bi-plus-lg"></i> Tạo bài thi mới</button>
+        </div>
+
+        <div class="table-responsive">
+            <table class="admin-table">
+                <thead>
+                <tr>
+                    <th>Tên bài thi</th>
+                    <th>Danh mục</th>
+                    <th>Thời lượng</th>
+                    <th>Số câu</th>
+                    <th>Trạng thái</th>
+                    <th>Thao tác</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>
+                        <strong>Kiểm tra Kiến thức OOP Java</strong>
+                        <div style="font-size: 0.75rem; color: #64748b;">Tạo ngày: 01/09/2026</div>
+                    </td>
+                    <td>Java Core</td>
+                    <td>45 phút</td>
+                    <td>30 câu</td>
+                    <td><span class="status-badge status-published">Công khai</span></td>
+                    <td>
+                        <div class="action-btns">
+                            <a th:href="@{/admin/exams/1/questions}" class="btn-act" title="Quản lý câu hỏi"><i class="bi bi-list-task"></i></a>
+                            <button class="btn-act" title="Chỉnh sửa"><i class="bi bi-pencil"></i></button>
+                            <button class="btn-act danger" title="Xóa"><i class="bi bi-trash"></i></button>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <strong>Spring Data JPA & Security</strong>
+                        <div style="font-size: 0.75rem; color: #64748b;">Tạo ngày: 03/09/2026</div>
+                    </td>
+                    <td>Spring Boot</td>
+                    <td>60 phút</td>
+                    <td>0 câu</td>
+                    <td><span class="status-badge status-draft">Bản nháp</span></td>
+                    <td>
+                        <div class="action-btns">
+                            <a th:href="@{/admin/exams/2/questions}" class="btn-act" title="Quản lý câu hỏi"><i class="bi bi-list-task"></i></a>
+                            <button class="btn-act" title="Chỉnh sửa"><i class="bi bi-pencil"></i></button>
+                            <button class="btn-act danger" title="Xóa"><i class="bi bi-trash"></i></button>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+
+<!-- Modal Tạo đề thi mới -->
+<div class="modal-overlay" id="examModal">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3 style="font-size: 1.1rem; color: #0f172a;">Tạo Đề thi mới</h3>
+            <i class="bi bi-x-lg" style="cursor: pointer;" onclick="closeModal()"></i>
+        </div>
+        <form th:action="@{/admin/exams/save}" method="post">
+            <div class="form-group">
+                <label class="form-label">Tên bài thi</label>
+                <input type="text" name="title" class="form-control" placeholder="Nhập tên bài thi..." required>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label class="form-label">Danh mục</label>
+                    <select name="categoryId" class="form-select">
+                        <option value="1">Java Core</option>
+                        <option value="2">Spring Boot</option>
+                        <option value="3">Database</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Thời lượng (Phút)</label>
+                    <input type="number" name="duration" class="form-control" value="45" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Mô tả bài thi</label>
+                <textarea name="description" class="form-control" rows="3" placeholder="Mô tả ngắn..."></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-cancel" onclick="closeModal()">Hủy</button>
+                <button type="submit" class="btn-create">Lưu đề thi</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openModal() { document.getElementById('examModal').style.display = 'flex'; }
+    function closeModal() { document.getElementById('examModal').style.display = 'none'; }
+</script>
+</body>
+</html>

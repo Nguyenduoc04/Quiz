@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kết quả bài thi - Quiz CodeGym</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f0f4f8; color: #1a1a2e; min-height: 100vh; display: flex; flex-direction: column; }
+        .main-container { max-width: 900px; margin: 2rem auto; padding: 0 1.5rem; flex: 1; width: 100%; }
+
+        /* SCORE SUMMARY CARD */
+        .summary-card {
+            background: white; border-radius: 20px; padding: 2.5rem; border: 1px solid #e2e8f0;
+            text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.05); margin-bottom: 2rem;
+        }
+        .status-badge {
+            display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.4rem 1.2rem;
+            border-radius: 20px; font-weight: 700; font-size: 0.9rem; margin-bottom: 1rem;
+        }
+        .status-pass { background: #dcfce7; color: #15803d; }
+        .status-fail { background: #fee2e2; color: #b91c1c; }
+
+        .score-circle {
+            width: 130px; height: 130px; border-radius: 50%; border: 8px solid #667eea;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            margin: 1rem auto; font-size: 2.2rem; font-weight: 800; color: #1e293b;
+        }
+        .score-circle span { font-size: 0.8rem; font-weight: 600; color: #64748b; text-transform: uppercase; }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin: 1.8rem 0; border-top: 1px solid #f1f5f9; padding-top: 1.5rem; }
+        .stat-item h4 { font-size: 1.2rem; color: #0f172a; font-weight: 700; }
+        .stat-item p { font-size: 0.82rem; color: #64748b; }
+
+        .action-btns { display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; }
+        .btn { padding: 0.7rem 1.5rem; border-radius: 10px; font-weight: 600; text-decoration: none; font-size: 0.9rem; transition: 0.2s; display: inline-flex; align-items: center; gap: 0.5rem; }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-primary:hover { background: #5a67d8; }
+        .btn-outline { background: white; border: 1px solid #cbd5e1; color: #475569; }
+        .btn-outline:hover { background: #f8fafc; }
+
+        /* REVIEW ANSWERS SECTION */
+        .review-section { background: white; border-radius: 16px; border: 1px solid #e2e8f0; padding: 1.5rem; }
+        .review-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 1.2rem; color: #0f172a; display: flex; align-items: center; gap: 0.5rem; }
+        .question-box { border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.2rem; margin-bottom: 1rem; }
+        .question-box.correct-border { border-left: 5px solid #22c55e; }
+        .question-box.wrong-border { border-left: 5px solid #ef4444; }
+
+        .opt-review { padding: 0.6rem 0.9rem; border-radius: 8px; margin-top: 0.5rem; font-size: 0.9rem; display: flex; justify-content: space-between; align-items: center; }
+        .opt-review.user-correct { background: #dcfce7; color: #15803d; font-weight: 600; }
+        .opt-review.user-wrong { background: #fee2e2; color: #b91c1c; font-weight: 600; }
+        .opt-review.correct-target { background: #f0fdf4; border: 1px dashed #22c55e; color: #15803d; }
+    </style>
+</head>
+<body>
+
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="main-container">
+    <!-- Tổng quan kết quả -->
+    <section class="summary-card">
+        <div class="status-badge status-pass">
+            <i class="bi bi-check-circle-fill"></i> ĐÃ ĐẠT YÊU CẦU
+        </div>
+        <h2 style="font-size: 1.5rem; color: #0f172a;" th:text="${examTitle} ?: 'Bài thi Java Core Cơ bản'">Bài thi Java Core Cơ bản</h2>
+
+        <div class="score-circle">
+            8.5
+            <span>Điểm số</span>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-item">
+                <h4>25 / 30</h4>
+                <p>Số câu đúng</p>
+            </div>
+            <div class="stat-item">
+                <h4>28 phút</h4>
+                <p>Thời gian làm bài</p>
+            </div>
+            <div class="stat-item">
+                <h4>83.3%</h4>
+                <p>Tỷ lệ chính xác</p>
+            </div>
+        </div>
+
+        <div class="action-btns">
+            <a th:href="@{/exams/1/take}" class="btn btn-outline"><i class="bi bi-arrow-counterclockwise"></i> Thi lại bài này</a>
+            <a th:href="@{/users/history}" class="btn btn-outline"><i class="bi bi-clock-history"></i> Xem lịch sử thi</a>
+            <a th:href="@{/}" class="btn btn-primary"><i class="bi bi-house"></i> Về trang chủ</a>
+        </div>
+    </section>
+
+    <!-- Xem lại chi tiết từng câu -->
+    <section class="review-section">
+        <div class="review-title">
+            <i class="bi bi-file-earmark-text-fill" style="color: #667eea;"></i> Chi tiết bài làm
+        </div>
+
+        <!-- Câu trả lời Đúng -->
+        <div class="question-box correct-border">
+            <p style="font-weight: 600; font-size: 0.95rem; margin-bottom: 0.6rem;">
+                Câu 1: Từ khóa nào được sử dụng để khai báo hằng số trong Java?
+            </p>
+            <div class="opt-review user-correct">
+                <span>B. final</span>
+                <span><i class="bi bi-check-circle-fill"></i> Chọn đúng</span>
+            </div>
+        </div>
+
+        <!-- Câu trả lời Sai -->
+        <div class="question-box wrong-border">
+            <p style="font-weight: 600; font-size: 0.95rem; margin-bottom: 0.6rem;">
+                Câu 2: Interface trong Java bắt đầu hỗ trợ default method từ phiên bản nào?
+            </p>
+            <div class="opt-review user-wrong">
+                <span>A. Java 7</span>
+                <span><i class="bi bi-x-circle-fill"></i> Bạn đã chọn</span>
+            </div>
+            <div class="opt-review correct-target">
+                <span>B. Java 8</span>
+                <span><i class="bi bi-check2"></i> Đáp án đúng</span>
+            </div>
+        </div>
+    </section>
+</main>
+
+</body>
+</html>

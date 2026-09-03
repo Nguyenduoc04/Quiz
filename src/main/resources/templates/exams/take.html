@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${examTitle} ?: 'Màn hình làm bài thi'">Làm bài thi - Quiz CodeGym</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f0f4f8; color: #1a1a2e; min-height: 100vh; display: flex; flex-direction: column; }
+
+        /* TOP TIMER BAR */
+        .exam-header {
+            background: white; border-bottom: 1px solid #e2e8f0; padding: 0.8rem 2rem;
+            position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .exam-info h2 { font-size: 1.1rem; color: #0f172a; font-weight: 700; }
+        .exam-info p { font-size: 0.8rem; color: #64748b; }
+
+        .timer-badge {
+            background: #fef3c7; color: #b45309; border: 1px solid #fde68a;
+            padding: 0.5rem 1.2rem; border-radius: 20px; font-weight: 700; font-size: 1rem;
+            display: flex; align-items: center; gap: 0.5rem;
+        }
+        .timer-badge.warning { background: #fee2e2; color: #dc2626; border-color: #fca5a5; animation: pulse 1s infinite; }
+
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+
+        /* LAYOUT MAIN */
+        .exam-layout { max-width: 1200px; margin: 1.5rem auto; padding: 0 1.5rem; display: grid; grid-template-columns: 1fr 320px; gap: 1.5rem; flex: 1; width: 100%; }
+        @media (max-width: 868px) { .exam-layout { grid-template-columns: 1fr; } }
+
+        /* QUESTION CARD */
+        .question-card { background: white; border-radius: 16px; border: 1px solid #e2e8f0; padding: 1.5rem; margin-bottom: 1.2rem; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
+        .question-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .question-number { font-weight: 700; color: #667eea; font-size: 0.95rem; }
+        .flag-btn { background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 0.9rem; display: flex; align-items: center; gap: 0.3rem; }
+        .flag-btn.active { color: #f59e0b; font-weight: 600; }
+        .question-title { font-size: 1.05rem; font-weight: 600; color: #1e293b; line-height: 1.5; margin-bottom: 1.2rem; }
+
+        /* OPTIONS LIST */
+        .options-list { display: flex; flex-direction: column; gap: 0.8rem; }
+        .option-item {
+            display: flex; align-items: center; gap: 0.8rem; padding: 0.8rem 1rem;
+            border: 1px solid #cbd5e1; border-radius: 10px; cursor: pointer; transition: all 0.2s;
+        }
+        .option-item:hover { background: #f8fafc; border-color: #667eea; }
+        .option-item input[type="radio"] { width: 18px; height: 18px; accent-color: #667eea; cursor: pointer; }
+        .option-item.selected { background: #e0e7ff; border-color: #667eea; font-weight: 600; }
+
+        /* PALETTE SIDEBAR */
+        .palette-card { background: white; border-radius: 16px; border: 1px solid #e2e8f0; padding: 1.2rem; height: fit-content; position: sticky; top: 80px; }
+        .palette-title { font-size: 0.95rem; font-weight: 700; color: #0f172a; margin-bottom: 1rem; }
+        .palette-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.6rem; margin-bottom: 1.5rem; }
+        .q-btn {
+            height: 40px; border-radius: 8px; border: 1px solid #cbd5e1; background: white;
+            font-weight: 600; font-size: 0.85rem; color: #475569; cursor: pointer; transition: 0.2s;
+            display: flex; align-items: center; justify-content: center; position: relative;
+        }
+        .q-btn.answered { background: #667eea; color: white; border-color: #667eea; }
+        .q-btn.flagged::after { content: '★'; position: absolute; top: -4px; right: 2px; color: #f59e0b; font-size: 10px; }
+
+        .palette-legend { display: flex; gap: 1rem; font-size: 0.75rem; color: #64748b; margin-bottom: 1.2rem; }
+        .legend-item { display: flex; align-items: center; gap: 0.3rem; }
+        .dot { width: 12px; height: 12px; border-radius: 3px; border: 1px solid #cbd5e1; }
+        .dot.answered { background: #667eea; border-color: #667eea; }
+
+        .btn-submit { width: 100%; background: #22c55e; color: white; border: none; padding: 0.8rem; border-radius: 10px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: 0.2s; }
+        .btn-submit:hover { background: #16a34a; }
+
+        /* MODAL CONFIRM */
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center; }
+        .modal-card { background: white; padding: 1.8rem; border-radius: 16px; width: 90%; max-width: 400px; text-align: center; }
+        .modal-actions { display: flex; gap: 0.8rem; margin-top: 1.5rem; }
+        .btn-cancel { flex: 1; background: #f1f5f9; border: none; padding: 0.7rem; border-radius: 8px; font-weight: 600; color: #475569; cursor: pointer; }
+        .btn-confirm { flex: 1; background: #22c55e; border: none; padding: 0.7rem; border-radius: 8px; font-weight: 600; color: white; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<!-- Header Đồng hồ đếm ngược -->
+<header class="exam-header">
+    <div class="exam-info">
+        <h2 th:text="${examTitle} ?: 'Bài thi Java Core Cơ bản'">Bài thi Java Core Cơ bản</h2>
+        <p>Thí sinh: <span th:text="${studentName} ?: 'Nguyễn Văn An'">Nguyễn Văn An</span></p>
+    </div>
+    <div class="timer-badge" id="timerBadge">
+        <i class="bi bi-clock-history"></i> <span id="timerText">45:00</span>
+    </div>
+</header>
+
+<main class="exam-layout">
+    <!-- Form Làm bài -->
+    <form id="examForm" th:action="@{/exams/submit}" method="post">
+        <input type="hidden" name="examId" th:value="${examId}">
+
+        <!-- List Câu hỏi -->
+        <div id="questionsContainer">
+
+            <!-- Sample Question 1 -->
+            <div class="question-card" id="q-1">
+                <div class="question-header">
+                    <span class="question-number">Câu 1 / 30</span>
+                    <button type="button" class="flag-btn" onclick="toggleFlag(1)"><i class="bi bi-bookmark-star"></i> Đặt cờ</button>
+                </div>
+                <div class="question-title">Đâu là từ khóa được sử dụng để khai báo một hằng số trong ngôn ngữ lập trình Java?</div>
+                <div class="options-list">
+                    <label class="option-item" onclick="selectOption(1)">
+                        <input type="radio" name="q_1" value="A" onchange="markAnswered(1)">
+                        <span>A. static</span>
+                    </label>
+                    <label class="option-item" onclick="selectOption(1)">
+                        <input type="radio" name="q_1" value="B" onchange="markAnswered(1)">
+                        <span>B. final</span>
+                    </label>
+                    <label class="option-item" onclick="selectOption(1)">
+                        <input type="radio" name="q_1" value="C" onchange="markAnswered(1)">
+                        <span>C. const</span>
+                    </label>
+                    <label class="option-item" onclick="selectOption(1)">
+                        <input type="radio" name="q_1" value="D" onchange="markAnswered(1)">
+                        <span>D. immutable</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Sample Question 2 -->
+            <div class="question-card" id="q-2">
+                <div class="question-header">
+                    <span class="question-number">Câu 2 / 30</span>
+                    <button type="button" class="flag-btn" onclick="toggleFlag(2)"><i class="bi bi-bookmark-star"></i> Đặt cờ</button>
+                </div>
+                <div class="question-title">Interface trong Java có thể chứa phương thức có thân hàm (body) từ phiên bản nào?</div>
+                <div class="options-list">
+                    <label class="option-item" onclick="selectOption(2)">
+                        <input type="radio" name="q_2" value="A" onchange="markAnswered(2)">
+                        <span>A. Java 7</span>
+                    </label>
+                    <label class="option-item" onclick="selectOption(2)">
+                        <input type="radio" name="q_2" value="B" onchange="markAnswered(2)">
+                        <span>B. Java 8 (với default & static method)</span>
+                    </label>
+                    <label class="option-item" onclick="selectOption(2)">
+                        <input type="radio" name="q_2" value="C" onchange="markAnswered(2)">
+                        <span>C. Java 11</span>
+                    </label>
+                </div>
+            </div>
+
+        </div>
+    </form>
+
+    <!-- Sidebar Danh sách câu hỏi -->
+    <aside class="palette-card">
+        <div class="palette-title">Danh mục câu hỏi</div>
+        <div class="palette-grid">
+            <button type="button" class="q-btn" id="p-btn-1" onclick="scrollToQuestion(1)">1</button>
+            <button type="button" class="q-btn" id="p-btn-2" onclick="scrollToQuestion(2)">2</button>
+            <button type="button" class="q-btn" id="p-btn-3" onclick="scrollToQuestion(3)">3</button>
+            <!-- Thêm động bằng loop -->
+        </div>
+
+        <div class="palette-legend">
+            <div class="legend-item"><div class="dot answered"></div> Đã chọn</div>
+            <div class="legend-item"><div class="dot"></div> Chưa chọn</div>
+        </div>
+
+        <button type="button" class="btn-submit" onclick="openModal()"><i class="bi bi-send-check"></i> Nộp bài thi</button>
+    </aside>
+</main>
+
+<!-- Modal Xác nhận nộp bài -->
+<div class="modal-overlay" id="confirmModal">
+    <div class="modal-card">
+        <i class="bi bi-exclamation-circle" style="font-size: 2.5rem; color: #f59e0b;"></i>
+        <h3 style="margin: 0.8rem 0 0.4rem; color: #0f172a;">Xác nhận nộp bài?</h3>
+        <p style="font-size: 0.88rem; color: #64748b;">Bạn đã làm <strong id="answeredCount" style="color: #667eea;">0</strong> câu hỏi. Bạn có chắc muốn nộp ngay không?</p>
+        <div class="modal-actions">
+            <button class="btn-cancel" onclick="closeModal()">Làm tiếp</button>
+            <button class="btn-confirm" onclick="document.getElementById('examForm').submit()">Xác nhận</button>
+        </div>
+    </div>
+</div>
+
+<!-- Script Đếm giờ & Tương tác -->
+<script>
+    // Đồng hồ đếm ngược (45 phút)
+    let timeInSeconds = 45 * 60;
+    const timerText = document.getElementById('timerText');
+    const timerBadge = document.getElementById('timerBadge');
+
+    const countdown = setInterval(() => {
+        let minutes = Math.floor(timeInSeconds / 60);
+        let seconds = timeInSeconds % 60;
+
+        timerText.innerText = `${minutes < 10 ? '0' : ''}${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+
+        if (timeInSeconds <= 300) { // Dưới 5 phút
+            timerBadge.classList.add('warning');
+        }
+        if (timeInSeconds <= 0) {
+            clearInterval(countdown);
+            alert('Đã hết thời gian làm bài! Hệ thống sẽ tự động nộp bài.');
+            document.getElementById('examForm').submit();
+        }
+        timeInSeconds--;
+    }, 1000);
+
+    // Đánh dấu đã trả lời
+    function markAnswered(qNum) {
+        const btn = document.getElementById(`p-btn-${qNum}`);
+        if(btn) btn.classList.add('answered');
+    }
+
+    // Toggle Cắm cờ
+    function toggleFlag(qNum) {
+        const btn = document.getElementById(`p-btn-${qNum}`);
+        if(btn) btn.classList.toggle('flagged');
+    }
+
+    // Cuộn tới câu hỏi
+    function scrollToQuestion(qNum) {
+        const element = document.getElementById(`q-${qNum}`);
+        if(element) element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    // Modal Handler
+    function openModal() {
+        const answered = document.querySelectorAll('.q-btn.answered').length;
+        document.getElementById('answeredCount').innerText = answered;
+        document.getElementById('confirmModal').style.display = 'flex';
+    }
+    function closeModal() {
+        document.getElementById('confirmModal').style.display = 'none';
+    }
+</script>
+</body>
+</html>
