@@ -28,8 +28,23 @@ public class TeacherCategoryController {
     }
 
     /**
+     * Thêm tên người dùng hiện tại vào Model
+     * để hiển thị trên giao diện Teacher.
+     */
+    private void injectFullName(Model model) {
+        authHelper.getCurrentUser().ifPresent(user -> {
+            String displayName =
+                    (user.getFullName() != null && !user.getFullName().isBlank())
+                            ? user.getFullName()
+                            : user.getUsername();
+
+            model.addAttribute("fullName", displayName);
+        });
+    }
+
+    /**
      * Teacher xem danh sách category của chính mình.
-     * Có hỗ trợ search theo keyword và phân trang.
+     * Có hỗ trợ tìm kiếm theo keyword và phân trang.
      */
     @GetMapping
     public String listCategories(
@@ -37,6 +52,8 @@ public class TeacherCategoryController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             Model model) {
+
+        injectFullName(model);
 
         User currentUser = authHelper.getCurrentUser()
                 .orElseThrow(() ->
@@ -51,44 +68,16 @@ public class TeacherCategoryController {
                         pageable
                 );
 
-        model.addAttribute(
-                "categories",
-                categoryPage.getContent()
-        );
-
-        model.addAttribute(
-                "categoryPage",
-                categoryPage
-        );
-
-        model.addAttribute(
-                "keyword",
-                keyword
-        );
-
-        model.addAttribute(
-                "currentPage",
-                page
-        );
-
-        model.addAttribute(
-                "totalPages",
-                categoryPage.getTotalPages()
-        );
-
-        model.addAttribute(
-                "totalItems",
-                categoryPage.getTotalElements()
-        );
-
-        model.addAttribute(
-                "pageSize",
-                size
-        );
+        model.addAttribute("categories", categoryPage.getContent());
+        model.addAttribute("categoryPage", categoryPage);
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", categoryPage.getTotalPages());
+        model.addAttribute("totalItems", categoryPage.getTotalElements());
+        model.addAttribute("pageSize", size);
 
         return "teacher/category/list";
     }
-
 
     /**
      * Hiển thị form tạo category mới.
@@ -96,27 +85,20 @@ public class TeacherCategoryController {
     @GetMapping("/create")
     public String showCreateForm(Model model) {
 
-        model.addAttribute(
-                "categoryDTO",
-                new CategoryDTO()
-        );
+        injectFullName(model);
 
-        model.addAttribute(
-                "isEdit",
-                false
-        );
+        model.addAttribute("categoryDTO", new CategoryDTO());
+        model.addAttribute("isEdit", false);
 
         return "teacher/category/form";
     }
-
 
     /**
      * Teacher tạo category mới.
      */
     @PostMapping("/create")
     public String createCategory(
-            @ModelAttribute("categoryDTO")
-            CategoryDTO categoryDTO,
+            @ModelAttribute("categoryDTO") CategoryDTO categoryDTO,
             RedirectAttributes redirectAttributes) {
 
         try {
@@ -155,7 +137,6 @@ public class TeacherCategoryController {
         }
     }
 
-
     /**
      * Hiển thị form chỉnh sửa category.
      * Chỉ cho phép Teacher sửa category của chính mình.
@@ -167,6 +148,8 @@ public class TeacherCategoryController {
             RedirectAttributes redirectAttributes) {
 
         try {
+
+            injectFullName(model);
 
             User currentUser = authHelper.getCurrentUser()
                     .orElseThrow(() ->
@@ -180,15 +163,8 @@ public class TeacherCategoryController {
                             currentUser
                     );
 
-            model.addAttribute(
-                    "categoryDTO",
-                    categoryDTO
-            );
-
-            model.addAttribute(
-                    "isEdit",
-                    true
-            );
+            model.addAttribute("categoryDTO", categoryDTO);
+            model.addAttribute("isEdit", true);
 
             return "teacher/category/form";
 
@@ -203,7 +179,6 @@ public class TeacherCategoryController {
         }
     }
 
-
     /**
      * Teacher cập nhật category.
      * Chỉ cho phép cập nhật category của chính mình.
@@ -211,8 +186,7 @@ public class TeacherCategoryController {
     @PostMapping("/{id}/edit")
     public String updateCategory(
             @PathVariable("id") Long id,
-            @ModelAttribute("categoryDTO")
-            CategoryDTO categoryDTO,
+            @ModelAttribute("categoryDTO") CategoryDTO categoryDTO,
             RedirectAttributes redirectAttributes) {
 
         try {
@@ -252,7 +226,6 @@ public class TeacherCategoryController {
             return "redirect:/teacher/categories/" + id + "/edit";
         }
     }
-
 
     /**
      * Teacher xóa category.

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý Đề Thi - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+</head>
+<body>
+
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
+
+<div class="admin-main">
+    <div th:replace="~{fragments/header :: header('Quản lý Đề thi', 'Tạo và quản lý các bài thi trong hệ thống')}"></div>
+
+    <main class="admin-content p-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h4 class="mb-1 fw-bold">Danh Sách Đề Thi</h4>
+                        <p class="text-muted mb-0">Tạo mới và gán câu hỏi cho đề thi</p>
+                    </div>
+                    <a th:href="@{/admin/exams/create}" class="btn btn-primary">
+                        <i class="bi bi-plus-lg me-1"></i> Tạo mới đề thi
+                    </a>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle border">
+                        <thead class="table-dark">
+                        <tr>
+                            <th style="width: 50px;">ID</th>
+                            <th>Thông tin đề thi</th>
+                            <th>Thời gian</th>
+                            <th>Trạng thái</th>
+                            <th>Người tạo</th>
+                            <th style="width: 160px;" class="text-center">Thao tác</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="exam : ${exams}">
+                            <td class="fw-bold" th:text="${'#' + exam.id}">#1</td>
+                            <td>
+                                <strong class="d-block text-dark" th:text="${exam.title}">Đề thi Java Core</strong>
+                                <small class="text-muted" th:text="${exam.description}">Mô tả ngắn...</small>
+                            </td>
+                            <td th:text="${exam.durationMinutes + ' phút'}">60 phút</td>
+                            <td>
+                                <span th:if="${exam.status.name() == 'ACTIVE' or exam.status.name() == 'PUBLISHED'}" class="badge bg-success">Hoạt động</span>
+                                <span th:if="${exam.status.name() == 'DRAFT'}" class="badge bg-warning text-dark">Bản nháp</span>
+                                <span th:if="${exam.status.name() == 'INACTIVE' or exam.status.name() == 'CLOSED'}" class="badge bg-secondary">Đã đóng</span>
+                            </td>
+                            <td th:text="${exam.createdBy != null ? (exam.createdBy.fullName != null ? exam.createdBy.fullName : exam.createdBy.username) : 'N/A'}">Admin</td>
+                            <td class="text-center">
+                                <a th:href="@{/admin/exams/edit/{id}(id=${exam.id})}" class="btn btn-sm btn-outline-primary me-1" title="Chỉnh sửa & Quản lý câu hỏi">
+                                    <i class="bi bi-pencil me-1"></i> Sửa
+                                </a>
+                                <a th:href="@{/admin/exams/delete/{id}(id=${exam.id})}" class="btn btn-sm btn-outline-danger" title="Xóa" onclick="return confirm('Bạn có chắc chắn muốn xóa bài thi này?')">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(exams)}">
+                            <td colspan="6" class="text-center py-4 text-muted">
+                                Chưa có đề thi nào trong hệ thống.
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+    </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

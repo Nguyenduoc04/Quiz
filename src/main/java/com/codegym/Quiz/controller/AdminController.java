@@ -42,15 +42,6 @@ public class AdminController {
     }
 
     // ==========================================
-    // 1. DANG SACH NGUOI DUNG & DUYET GIAO VIEN
-    // ==========================================
-    @GetMapping("/users")
-    public String listUsers(Model model) {
-        List<User> users = userService.getAllUsers();
-        model.addAttribute("users", users);
-        return "admin/users";
-    }
-
     // 2. Trang danh sách giáo viên chờ duyệt (/admin/teachers/pending)
     @GetMapping("/teachers/pending")
     public String listPendingTeachers(Model model) {
@@ -62,7 +53,7 @@ public class AdminController {
     // 3. Duyệt tài khoản đăng ký làm Giáo viên
     @PostMapping("/users/{id}/approve-teacher")
     public String approveTeacher(@PathVariable("id") Long id,
-                                 @RequestParam(value = "redirectUrl", defaultValue = "/admin/users") String redirectUrl,
+                                 @RequestParam(value = "redirectUrl", defaultValue = "/admin/teachers/pending") String redirectUrl,
                                  RedirectAttributes redirectAttributes) {
         try {
             userService.approveTeacher(id);
@@ -76,7 +67,7 @@ public class AdminController {
     // 4. Từ chối yêu cầu đăng ký làm Giáo viên
     @PostMapping("/users/{id}/reject-teacher")
     public String rejectTeacher(@PathVariable("id") Long id,
-                                @RequestParam(value = "redirectUrl", defaultValue = "/admin/users") String redirectUrl,
+                                @RequestParam(value = "redirectUrl", defaultValue = "/admin/teachers/pending") String redirectUrl,
                                 RedirectAttributes redirectAttributes) {
         try {
             userService.rejectTeacher(id);
@@ -87,22 +78,35 @@ public class AdminController {
         return "redirect:" + redirectUrl;
     }
 
-    // 3. Xoa tai khoan nguoi dung
-    @PostMapping("/users/{id}/delete")
-    public String deleteUser(@PathVariable("id") Long id, RedirectAttributes redirectAttributes) {
+    // 5. Xóa tài khoản người dùng (Học viên)
+    @PostMapping("/students/{id}/delete")
+    public String deleteStudent(@PathVariable("id") Long id, RedirectAttributes redirectAttributes) {
         try {
             userService.deleteUserById(id);
-            redirectAttributes.addFlashAttribute("successMessage", "Đã xóa tài khoản thành công!");
+            redirectAttributes.addFlashAttribute("successMessage", "Đã xóa tài khoản học viên thành công!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Không thể xóa tài khoản: " + e.getMessage());
         }
-        return "redirect:/admin/users";
+        return "redirect:/admin/students";
     }
+
+    // 6. Xóa tài khoản người dùng (Giáo viên)
+    @PostMapping("/teachers/{id}/delete")
+    public String deleteTeacherUser(@PathVariable("id") Long id, RedirectAttributes redirectAttributes) {
+        try {
+            userService.deleteUserById(id);
+            redirectAttributes.addFlashAttribute("successMessage", "Đã xóa tài khoản giáo viên thành công!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Không thể xóa tài khoản: " + e.getMessage());
+        }
+        return "redirect:/admin/teachers";
+    }
+
     @GetMapping("/students")
     public String listStudents(
             @RequestParam(defaultValue = "") String keyword,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(defaultValue = "20") int size,
             Model model) {
 
         Pageable pageable = PageRequest.of(page, size);
@@ -126,11 +130,12 @@ public class AdminController {
 
         return "admin/students";
     }
+
     @GetMapping("/teachers")
     public String listTeachers(
             @RequestParam(defaultValue = "") String keyword,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(defaultValue = "20") int size,
             Model model) {
 
         Pageable pageable = PageRequest.of(page, size);

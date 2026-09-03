@@ -1,185 +1,171 @@
 <!DOCTYPE html>
-<html lang="vi"
-      xmlns:th="http://www.thymeleaf.org">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title th:text="${isEdit} ? 'Cập nhật danh mục' : 'Thêm danh mục'">
+    <title th:text="${isEdit} ? 'Cập Nhật Danh Mục' : 'Tạo Mới Danh Mục'">
         Danh mục
     </title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
           rel="stylesheet">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+          rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f0f4f8;
+            min-height: 100vh;
+        }
+
+        .main-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+
+        .card-custom {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.07);
+            border: none;
+        }
+
+        .btn-gradient {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-weight: 500;
+        }
+
+        .btn-gradient:hover {
+            color: white;
+            opacity: 0.92;
+        }
+    </style>
 </head>
 
-<body class="bg-light">
+<body>
 
-<div class="container py-5">
+<!-- Navbar chung -->
+<div th:replace="~{fragments/navbar :: navbar}"></div>
 
-    <div class="row justify-content-center">
+<div class="main-container">
 
-        <div class="col-lg-7 col-md-9">
+    <!-- Error message -->
+    <div th:if="${errorMessage}"
+         class="alert alert-danger alert-dismissible fade show rounded-3 shadow-sm mb-4"
+         role="alert">
 
-            <div class="card shadow-sm border-0">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
 
-                <div class="card-body p-4 p-md-5">
+        <span th:text="${errorMessage}"></span>
 
-                    <div class="mb-4">
+        <button type="button"
+                class="btn-close"
+                data-bs-dismiss="alert">
+        </button>
+    </div>
 
-                        <h2 class="fw-bold mb-1"
-                            th:text="${isEdit} ? 'Cập nhật danh mục' : 'Thêm danh mục mới'">
-                            Danh mục
-                        </h2>
+    <div class="card-custom">
 
-                        <p class="text-muted mb-0"
-                           th:text="${isEdit}
-                           ? 'Chỉnh sửa thông tin danh mục câu hỏi.'
-                           : 'Tạo một danh mục mới để quản lý câu hỏi.'">
-                        </p>
+        <h3 class="fw-bold mb-3"
+            style="color: #1a1a2e;"
+            th:text="${isEdit}
+                     ? '✏️ Cập Nhật Danh Mục'
+                     : '➕ Tạo Danh Mục Mới'">
+            Danh mục
+        </h3>
 
-                    </div>
+        <p class="text-muted mb-4"
+           th:text="${isEdit}
+                    ? 'Chỉnh sửa thông tin danh mục câu hỏi.'
+                    : 'Điền thông tin chi tiết danh mục bên dưới.'">
+        </p>
 
+        <form th:action="${isEdit}
+                         ? @{/teacher/categories/{id}/edit(id=${categoryDTO.id})}
+                         : @{/teacher/categories/create}"
+              th:object="${categoryDTO}"
+              method="post">
 
-                    <!-- Error -->
-                    <div th:if="${errorMessage}"
-                         class="alert alert-danger"
-                         th:text="${errorMessage}">
-                    </div>
+            <div class="mb-3">
 
+                <label for="name"
+                       class="form-label fw-semibold">
+                    Tên danh mục
+                    <span class="text-danger">*</span>
+                </label>
 
-                    <!-- Form CREATE -->
-                    <form th:if="${!isEdit}"
-                          th:action="@{/teacher/categories/create}"
-                          th:object="${categoryDTO}"
-                          method="post">
+                <input type="text"
+                       id="name"
+                       th:field="*{name}"
+                       class="form-control"
+                       placeholder="Ví dụ: Lập trình Java Core"
+                       maxlength="100"
+                       required>
 
-                        <div class="mb-3">
+            </div>
 
-                            <label for="nameCreate"
-                                   class="form-label fw-semibold">
-                                Tên danh mục
-                            </label>
+            <div class="mb-4">
 
-                            <input type="text"
-                                   id="nameCreate"
-                                   th:field="*{name}"
-                                   class="form-control"
-                                   maxlength="100"
-                                   placeholder="Ví dụ: Java Core"
-                                   required>
+                <label for="description"
+                       class="form-label fw-semibold">
+                    Mô tả danh mục
+                </label>
 
-                        </div>
+                <textarea id="description"
+                          th:field="*{description}"
+                          class="form-control"
+                          rows="4"
+                          placeholder="Nhập mô tả ngắn cho danh mục..."
+                          maxlength="500"></textarea>
 
-
-                        <div class="mb-4">
-
-                            <label for="descriptionCreate"
-                                   class="form-label fw-semibold">
-                                Mô tả
-                            </label>
-
-                            <textarea id="descriptionCreate"
-                                      th:field="*{description}"
-                                      class="form-control"
-                                      rows="5"
-                                      maxlength="500"
-                                      placeholder="Nhập mô tả cho danh mục..."></textarea>
-
-                            <div class="form-text">
-                                Tối đa 500 ký tự.
-                            </div>
-
-                        </div>
-
-
-                        <div class="d-flex justify-content-end gap-2">
-
-                            <a th:href="@{/teacher/categories}"
-                               class="btn btn-outline-secondary">
-                                Hủy
-                            </a>
-
-                            <button type="submit"
-                                    class="btn btn-primary">
-                                Tạo danh mục
-                            </button>
-
-                        </div>
-
-                    </form>
-
-
-                    <!-- Form EDIT -->
-                    <form th:if="${isEdit}"
-                          th:action="@{/teacher/categories/{id}/edit(id=${categoryDTO.id})}"
-                          th:object="${categoryDTO}"
-                          method="post">
-
-                        <div class="mb-3">
-
-                            <label for="nameEdit"
-                                   class="form-label fw-semibold">
-                                Tên danh mục
-                            </label>
-
-                            <input type="text"
-                                   id="nameEdit"
-                                   th:field="*{name}"
-                                   class="form-control"
-                                   maxlength="100"
-                                   required>
-
-                        </div>
-
-
-                        <div class="mb-4">
-
-                            <label for="descriptionEdit"
-                                   class="form-label fw-semibold">
-                                Mô tả
-                            </label>
-
-                            <textarea id="descriptionEdit"
-                                      th:field="*{description}"
-                                      class="form-control"
-                                      rows="5"
-                                      maxlength="500"></textarea>
-
-                            <div class="form-text">
-                                Tối đa 500 ký tự.
-                            </div>
-
-                        </div>
-
-
-                        <div class="d-flex justify-content-end gap-2">
-
-                            <a th:href="@{/teacher/categories}"
-                               class="btn btn-outline-secondary">
-                                Hủy
-                            </a>
-
-                            <button type="submit"
-                                    class="btn btn-primary">
-                                Lưu thay đổi
-                            </button>
-
-                        </div>
-
-                    </form>
-
+                <div class="form-text">
+                    Tối đa 500 ký tự.
                 </div>
 
             </div>
 
-        </div>
+            <div class="d-flex justify-content-end gap-2">
+
+                <a th:href="@{/teacher/categories}"
+                   class="btn btn-outline-secondary rounded-pill px-4">
+                    Hủy bỏ
+                </a>
+
+                <button type="submit"
+                        class="btn btn-gradient rounded-pill px-4">
+
+                    <i class="bi bi-save me-1"></i>
+
+                    <span th:text="${isEdit}
+                                   ? 'Cập nhật'
+                                   : 'Lưu danh mục'">
+                        Lưu
+                    </span>
+
+                </button>
+
+            </div>
+
+        </form>
 
     </div>
 
 </div>
-
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
 </script>

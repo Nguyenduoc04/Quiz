@@ -77,6 +77,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/**").permitAll()
                 // Chỉ ADMIN mới vào /admin/**
                 .requestMatchers("/admin/**").hasRole("ADMIN")
+                // Chỉ TEACHER hoặc ADMIN mới vào /teacher/**
+                .requestMatchers("/teacher/**").hasAnyRole("TEACHER", "ADMIN")
                 // Còn lại phải đăng nhập (ROLE_USER, ROLE_STUDENT, ROLE_ADMIN đều được)
                 .anyRequest().authenticated()
             )

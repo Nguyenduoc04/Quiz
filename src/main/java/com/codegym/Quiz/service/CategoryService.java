@@ -120,7 +120,6 @@ public class CategoryService {
         Category category = getCategoryByIdAndUser(id, user);
         return convertToDTO(category);
     }
-
     public CategoryDTO convertToDTO(Category category) {
         long count = categoryRepository.countQuestionsByCategoryId(category.getId());
         String createdByName = (category.getCreatedBy() != null && category.getCreatedBy().getFullName() != null && !category.getCreatedBy().getFullName().isBlank())
