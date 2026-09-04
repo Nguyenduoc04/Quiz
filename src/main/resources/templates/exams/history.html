@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lịch sử làm bài - Quiz CodeGym</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f0f4f8; color: #1a1a2e; min-height: 100vh; display: flex; flex-direction: column; }
+        .main-container { max-width: 1000px; margin: 2rem auto; padding: 0 1.5rem; flex: 1; width: 100%; }
+
+        .card-panel { background: white; border-radius: 16px; border: 1px solid #e2e8f0; padding: 1.8rem; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
+        .panel-header { font-size: 1.25rem; font-weight: 700; color: #0f172a; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem; }
+
+        .history-table { width: 100%; border-collapse: collapse; text-align: left; }
+        .history-table th { background: #f8fafc; padding: 0.9rem 1rem; font-size: 0.85rem; font-weight: 700; color: #475569; border-bottom: 1px solid #e2e8f0; }
+        .history-table td { padding: 1rem; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; color: #1e293b; }
+
+        .badge-status { padding: 0.25rem 0.6rem; border-radius: 6px; font-size: 0.78rem; font-weight: 700; }
+        .pass { background: #dcfce7; color: #15803d; }
+        .fail { background: #fee2e2; color: #b91c1c; }
+
+        .btn-view { color: #667eea; text-decoration: none; font-weight: 600; font-size: 0.85rem; }
+        .btn-view:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="main-container">
+    <section class="card-panel">
+        <div class="panel-header">
+            <i class="bi bi-clock-history" style="color: #667eea;"></i> Lịch sử thi của bạn
+        </div>
+
+        <table class="history-table">
+            <thead>
+            <tr>
+                <th>Tên bài thi</th>
+                <th>Ngày nộp</th>
+                <th>Thời gian làm</th>
+                <th>Điểm số</th>
+                <th>Trạng thái</th>
+                <th>Thao tác</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td><strong>Java Core Cơ bản</strong></td>
+                <td>03/09/2026 14:20</td>
+                <td>28 phút</td>
+                <td><strong style="color: #15803d;">8.5 / 10</strong></td>
+                <td><span class="badge-status pass">ĐẠT</span></td>
+                <td><a th:href="@{/exams/results/101}" class="btn-view">Xem chi tiết</a></td>
+            </tr>
+            <tr>
+                <td><strong>Spring Boot & REST API</strong></td>
+                <td>01/09/2026 09:15</td>
+                <td>42 phút</td>
+                <td><strong style="color: #b91c1c;">4.0 / 10</strong></td>
+                <td><span class="badge-status fail">CHƯA ĐẠT</span></td>
+                <td><a th:href="@{/exams/results/100}" class="btn-view">Xem chi tiết</a></td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</main>
+
+</body>
+</html>
