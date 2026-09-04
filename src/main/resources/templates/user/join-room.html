@@ -42,7 +42,11 @@
     <h1 class="join-title">Tham gia phòng thi</h1>
     <p class="join-desc">Nhập mã PIN do giáo viên cung cấp để vào phòng chờ</p>
 
-    <form th:action="@{/user/waiting-room}" method="get">
+    <div th:if="${errorMessage}" style="background:#fee2e2; color:#b91c1c; padding:0.8rem; border-radius:10px; font-weight:600; font-size:0.85rem; margin-bottom:1rem;" th:text="${errorMessage}">
+        Mã phòng thi không tồn tại
+    </div>
+
+    <form th:action="@{/user/join-room}" method="post">
         <div class="form-group">
             <label class="form-label">MÃ PHÒNG (ROOM PIN)</label>
             <input type="text" name="pin" class="pin-input" placeholder="889-204" maxlength="7" required autocomplete="off">

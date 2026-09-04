@@ -107,8 +107,11 @@
         <button type="submit" class="btn">Đăng ký</button>
     </form>
 
-    <div class="text-center">
-        Đã có tài khoản? <a th:href="@{/auth/login}">Đăng nhập</a>
+    <div class="text-center" style="margin-top: 1.2rem; display: flex; flex-direction: column; gap: 0.8rem;">
+        <div>Đã có tài khoản? <a th:href="@{/auth/login}">Đăng nhập</a></div>
+        <a th:href="@{/dashboard}" style="display: block; width: 100%; padding: 0.65rem; background: #f3f4f6; color: #374151; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 0.9rem; transition: background 0.2s;">
+            🏠 Quay về Trang chủ
+        </a>
     </div>
 </div>
 </body>

@@ -11,6 +11,7 @@ public class CategoryDTO {
     private Long createdById;
     private LocalDateTime createdAt;
     private long questionCount;
+    private long examCount;
 
     public CategoryDTO() {}
 
@@ -44,4 +45,7 @@ public class CategoryDTO {
 
     public long getQuestionCount() { return questionCount; }
     public void setQuestionCount(long questionCount) { this.questionCount = questionCount; }
+
+    public long getExamCount() { return examCount; }
+    public void setExamCount(long examCount) { this.examCount = examCount; }
 }

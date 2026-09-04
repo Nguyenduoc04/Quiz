@@ -48,9 +48,11 @@
                             </td>
                             <td th:text="${exam.durationMinutes + ' phút'}">60 phút</td>
                             <td>
-                                <span th:if="${exam.status.name() == 'ACTIVE' or exam.status.name() == 'PUBLISHED'}" class="badge bg-success">Hoạt động</span>
                                 <span th:if="${exam.status.name() == 'DRAFT'}" class="badge bg-warning text-dark">Bản nháp</span>
-                                <span th:if="${exam.status.name() == 'INACTIVE' or exam.status.name() == 'CLOSED'}" class="badge bg-secondary">Đã đóng</span>
+                                <span th:if="${exam.status.name() == 'PUBLISHED'}" class="badge bg-info text-dark">Đã công bố</span>
+                                <span th:if="${exam.status.name() == 'ACTIVE'}" class="badge bg-success">Mở làm bài</span>
+                                <span th:if="${exam.status.name() == 'CLOSED'}" class="badge bg-secondary">Đã đóng</span>
+                                <span th:if="${exam.status.name() == 'INACTIVE'}" class="badge bg-danger">Tạm ngưng</span>
                             </td>
                             <td th:text="${exam.createdBy != null ? (exam.createdBy.fullName != null ? exam.createdBy.fullName : exam.createdBy.username) : 'N/A'}">Admin</td>
                             <td class="text-center">

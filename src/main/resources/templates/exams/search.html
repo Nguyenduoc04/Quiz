@@ -130,61 +130,25 @@
             </div>
 
             <div class="exam-grid">
-                <!-- Sample Card 1 -->
-                <div class="exam-card">
+                <div class="exam-card" th:each="exam : ${exams}">
                     <div class="exam-body">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <span class="badge-cat">Java Core</span>
-                            <span class="badge-level level-easy">Dễ</span>
+                            <span class="badge-cat" th:text="${exam.categoryName}">Danh mục</span>
+                            <span class="badge-level level-easy" th:text="${exam.status != null ? exam.status : 'ACTIVE'}">ACTIVE</span>
                         </div>
-                        <h3 class="exam-title">Luyện tập Collection Framework</h3>
+                        <h3 class="exam-title" th:text="${exam.title}">Tiêu đề bài thi</h3>
                         <div class="exam-meta">
-                            <span><i class="bi bi-clock"></i> 30 phút</span>
-                            <span><i class="bi bi-question-circle"></i> 20 câu</span>
+                            <span><i class="bi bi-clock"></i> <span th:text="${exam.durationMinutes ?: 30}">30</span> phút</span>
+                            <span><i class="bi bi-question-circle"></i> <span th:text="${exam.examQuestions != null ? exam.examQuestions.size() : 0}">20</span> câu</span>
                         </div>
                     </div>
                     <div class="exam-footer">
-                        <span style="font-size: 0.78rem; color: #64748b;">1.2k lượt thi</span>
-                        <a th:href="@{/exams/1/detail}" class="btn-start">Vào thi</a>
+                        <span style="font-size: 0.78rem; color: #64748b;"><i class="bi bi-play-circle"></i> Đang mở</span>
+                        <a th:href="@{/exams/{id}/take(id=${exam.id})}" class="btn-start">Vào thi</a>
                     </div>
                 </div>
-
-                <!-- Sample Card 2 -->
-                <div class="exam-card">
-                    <div class="exam-body">
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <span class="badge-cat">Spring Boot</span>
-                            <span class="badge-level level-medium">Trung bình</span>
-                        </div>
-                        <h3 class="exam-title">Spring Security & JWT Authentication</h3>
-                        <div class="exam-meta">
-                            <span><i class="bi bi-clock"></i> 45 phút</span>
-                            <span><i class="bi bi-question-circle"></i> 30 câu</span>
-                        </div>
-                    </div>
-                    <div class="exam-footer">
-                        <span style="font-size: 0.78rem; color: #64748b;">850 lượt thi</span>
-                        <a th:href="@{/exams/2/detail}" class="btn-start">Vào thi</a>
-                    </div>
-                </div>
-
-                <!-- Sample Card 3 -->
-                <div class="exam-card">
-                    <div class="exam-body">
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <span class="badge-cat">Database</span>
-                            <span class="badge-level level-hard">Khó</span>
-                        </div>
-                        <h3 class="exam-title">Tối ưu hóa Truy vấn MySQL Indexing</h3>
-                        <div class="exam-meta">
-                            <span><i class="bi bi-clock"></i> 60 phút</span>
-                            <span><i class="bi bi-question-circle"></i> 40 câu</span>
-                        </div>
-                    </div>
-                    <div class="exam-footer">
-                        <span style="font-size: 0.78rem; color: #64748b;">430 lượt thi</span>
-                        <a th:href="@{/exams/3/detail}" class="btn-start">Vào thi</a>
-                    </div>
+                <div th:if="${exams == null or #lists.isEmpty(exams)}" style="grid-column: 1/-1; text-align: center; color: #64748b; padding: 2rem;">
+                    Không tìm thấy bài thi nào phù hợp.
                 </div>
             </div>
 

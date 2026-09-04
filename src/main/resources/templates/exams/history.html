@@ -47,21 +47,21 @@
             </tr>
             </thead>
             <tbody>
-            <tr>
-                <td><strong>Java Core Cơ bản</strong></td>
-                <td>03/09/2026 14:20</td>
-                <td>28 phút</td>
-                <td><strong style="color: #15803d;">8.5 / 10</strong></td>
-                <td><span class="badge-status pass">ĐẠT</span></td>
-                <td><a th:href="@{/exams/results/101}" class="btn-view">Xem chi tiết</a></td>
+            <tr th:each="res : ${historyList}">
+                <td><strong th:text="${res.examTitle}">Tên bài thi</strong></td>
+                <td><span th:text="${res.submittedAt != null ? #temporals.format(res.submittedAt, 'dd/MM/yyyy HH:mm') : 'N/A'}">03/09/2026 14:20</span></td>
+                <td><span>Bài làm</span></td>
+                <td><strong th:style="${res.isPassed ? 'color: #15803d;' : 'color: #b91c1c;'}" th:text="${#numbers.formatDecimal(res.score, 1, 1) + ' / ' + #numbers.formatDecimal(res.totalScore, 1, 1)}">8.5 / 10</strong></td>
+                <td>
+                    <span class="badge-status pass" th:if="${res.isPassed}">ĐẠT</span>
+                    <span class="badge-status fail" th:if="${!res.isPassed}">CHƯA ĐẠT</span>
+                </td>
+                <td><a th:href="@{/exams/result(resultId=${res.id})}" class="btn-view">Xem chi tiết</a></td>
             </tr>
-            <tr>
-                <td><strong>Spring Boot & REST API</strong></td>
-                <td>01/09/2026 09:15</td>
-                <td>42 phút</td>
-                <td><strong style="color: #b91c1c;">4.0 / 10</strong></td>
-                <td><span class="badge-status fail">CHƯA ĐẠT</span></td>
-                <td><a th:href="@{/exams/results/100}" class="btn-view">Xem chi tiết</a></td>
+            <tr th:if="${historyList == null or #lists.isEmpty(historyList)}">
+                <td colspan="6" style="text-align: center; color: #64748b; padding: 2rem;">
+                    Bạn chưa có lịch sử làm bài thi nào.
+                </td>
             </tr>
             </tbody>
         </table>

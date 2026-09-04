@@ -60,7 +60,7 @@
             <p>Thiết lập phòng thi trực tuyến, cấp mã PIN để học viên cùng tham gia làm bài đồng bộ.</p>
         </div>
 
-        <form th:action="@{/teacher/rooms/create}" method="post">
+        <form th:action="@{/teacher/exam/create-online-room}" method="post">
             <div class="form-grid">
 
                 <div class="form-group full-width">
@@ -72,8 +72,7 @@
                     <label class="form-label">Chọn bộ đề thi</label>
                     <select name="examId" class="form-select" required>
                         <option value="">-- Chọn đề thi sẵn có --</option>
-                        <option value="1">Java Core & OOP Advanced (30 câu)</option>
-                        <option value="2">Spring Boot & REST API Essentials (20 câu)</option>
+                        <option th:each="ex : ${exams}" th:value="${ex.id}" th:text="${ex.title}"></option>
                     </select>
                 </div>
 

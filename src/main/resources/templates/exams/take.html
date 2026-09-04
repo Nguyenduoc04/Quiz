@@ -99,54 +99,37 @@
         <!-- List Câu hỏi -->
         <div id="questionsContainer">
 
-            <!-- Sample Question 1 -->
-            <div class="question-card" id="q-1">
+            <div class="question-card" th:each="q, qStat : ${questions}" th:id="${'q-' + qStat.count}">
                 <div class="question-header">
-                    <span class="question-number">Câu 1 / 30</span>
-                    <button type="button" class="flag-btn" onclick="toggleFlag(1)"><i class="bi bi-bookmark-star"></i> Đặt cờ</button>
+                    <span class="question-number" th:text="${'Câu ' + qStat.count + ' / ' + questions.size()}">Câu 1 / 30</span>
+                    <button type="button" class="flag-btn" th:attr="onclick=|toggleFlag(${qStat.count})|"><i class="bi bi-bookmark-star"></i> Đặt cờ</button>
                 </div>
-                <div class="question-title">Đâu là từ khóa được sử dụng để khai báo một hằng số trong ngôn ngữ lập trình Java?</div>
+                <div class="question-title" th:text="${q.content}">Đâu là từ khóa được sử dụng để khai báo một hằng số trong ngôn ngữ lập trình Java?</div>
                 <div class="options-list">
-                    <label class="option-item" onclick="selectOption(1)">
-                        <input type="radio" name="q_1" value="A" onchange="markAnswered(1)">
-                        <span>A. static</span>
+                    <label class="option-item" th:each="ans : ${q.answers}">
+                        <input type="radio" th:name="${'q_' + q.id}" th:value="${ans.id}" th:attr="onchange=|markAnswered(${qStat.count})|">
+                        <span th:text="${ans.content}">Đáp án</span>
                     </label>
-                    <label class="option-item" onclick="selectOption(1)">
-                        <input type="radio" name="q_1" value="B" onchange="markAnswered(1)">
-                        <span>B. final</span>
-                    </label>
-                    <label class="option-item" onclick="selectOption(1)">
-                        <input type="radio" name="q_1" value="C" onchange="markAnswered(1)">
-                        <span>C. const</span>
-                    </label>
-                    <label class="option-item" onclick="selectOption(1)">
-                        <input type="radio" name="q_1" value="D" onchange="markAnswered(1)">
-                        <span>D. immutable</span>
-                    </label>
+                </div>
+
+                <div class="q-footer-btns" style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #f1f5f9;">
+                    <button type="button" style="padding: 0.6rem 1.2rem; border-radius: 10px; border: 1px solid #cbd5e1; background: white; font-weight: 600; font-size: 0.88rem; cursor: pointer; color: #475569;" th:if="${!qStat.first}" th:attr="onclick=|scrollToQuestion(${qStat.count - 1})|">
+                        <i class="bi bi-arrow-left"></i> Câu trước
+                    </button>
+
+                    <div style="margin-left: auto; display: flex; gap: 0.5rem;">
+                        <button type="button" style="padding: 0.6rem 1.2rem; border-radius: 10px; border: 1px solid #cbd5e1; background: white; font-weight: 600; font-size: 0.88rem; cursor: pointer; color: #475569;" th:if="${!qStat.last}" th:attr="onclick=|scrollToQuestion(${qStat.count + 1})|">
+                            Câu tiếp theo <i class="bi bi-arrow-right"></i>
+                        </button>
+                        <button type="button" style="background: #22c55e; color: white; border: none; padding: 0.7rem 1.5rem; border-radius: 10px; font-weight: 700; font-size: 0.92rem; cursor: pointer;" th:if="${qStat.last}" onclick="openModal()">
+                            <i class="bi bi-send-check"></i> Nộp bài thi
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            <!-- Sample Question 2 -->
-            <div class="question-card" id="q-2">
-                <div class="question-header">
-                    <span class="question-number">Câu 2 / 30</span>
-                    <button type="button" class="flag-btn" onclick="toggleFlag(2)"><i class="bi bi-bookmark-star"></i> Đặt cờ</button>
-                </div>
-                <div class="question-title">Interface trong Java có thể chứa phương thức có thân hàm (body) từ phiên bản nào?</div>
-                <div class="options-list">
-                    <label class="option-item" onclick="selectOption(2)">
-                        <input type="radio" name="q_2" value="A" onchange="markAnswered(2)">
-                        <span>A. Java 7</span>
-                    </label>
-                    <label class="option-item" onclick="selectOption(2)">
-                        <input type="radio" name="q_2" value="B" onchange="markAnswered(2)">
-                        <span>B. Java 8 (với default & static method)</span>
-                    </label>
-                    <label class="option-item" onclick="selectOption(2)">
-                        <input type="radio" name="q_2" value="C" onchange="markAnswered(2)">
-                        <span>C. Java 11</span>
-                    </label>
-                </div>
+            <div th:if="${questions == null or #lists.isEmpty(questions)}" style="padding: 2rem; text-align: center; color: #64748b; background: white; border-radius: 16px;">
+                Bài thi này hiện chưa có câu hỏi nào.
             </div>
 
         </div>
@@ -156,10 +139,11 @@
     <aside class="palette-card">
         <div class="palette-title">Danh mục câu hỏi</div>
         <div class="palette-grid">
-            <button type="button" class="q-btn" id="p-btn-1" onclick="scrollToQuestion(1)">1</button>
-            <button type="button" class="q-btn" id="p-btn-2" onclick="scrollToQuestion(2)">2</button>
-            <button type="button" class="q-btn" id="p-btn-3" onclick="scrollToQuestion(3)">3</button>
-            <!-- Thêm động bằng loop -->
+            <button type="button" class="q-btn"
+                    th:each="q, qStat : ${questions}"
+                    th:id="${'p-btn-' + qStat.count}"
+                    th:attr="onclick=|scrollToQuestion(${qStat.count})|"
+                    th:text="${qStat.count}">1</button>
         </div>
 
         <div class="palette-legend">
@@ -185,9 +169,11 @@
 </div>
 
 <!-- Script Đếm giờ & Tương tác -->
-<script>
-    // Đồng hồ đếm ngược (45 phút)
-    let timeInSeconds = 45 * 60;
+<script th:inline="javascript">
+    // Đồng hồ đếm ngược
+    let durationMinutes = /*[[${durationMinutes}]]*/ 45;
+    if (!durationMinutes || durationMinutes <= 0) durationMinutes = 45;
+    let timeInSeconds = durationMinutes * 60;
     const timerText = document.getElementById('timerText');
     const timerBadge = document.getElementById('timerBadge');
 

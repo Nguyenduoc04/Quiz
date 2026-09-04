@@ -179,6 +179,20 @@ public class QuestionService {
                                         "Danh mục chọn không tồn tại"
                                 ));
 
+        // Kiểm tra phải có ít nhất 1 đáp án đúng
+        boolean hasCorrectAnswer = false;
+        if (dto.getAnswers() != null) {
+            for (AnswerDTO aDto : dto.getAnswers()) {
+                if (aDto.getContent() != null && !aDto.getContent().trim().isEmpty() && aDto.isCorrect()) {
+                    hasCorrectAnswer = true;
+                    break;
+                }
+            }
+        }
+        if (!hasCorrectAnswer) {
+            throw new IllegalArgumentException("Câu hỏi phải có ít nhất 1 đáp án đúng!");
+        }
+
         Question question = new Question();
 
         question.setContent(dto.getContent().trim());
@@ -247,6 +261,20 @@ public class QuestionService {
                                 new IllegalArgumentException(
                                         "Danh mục chọn không tồn tại"
                                 ));
+
+        // Kiểm tra phải có ít nhất 1 đáp án đúng
+        boolean hasCorrectAnswer = false;
+        if (dto.getAnswers() != null) {
+            for (AnswerDTO aDto : dto.getAnswers()) {
+                if (aDto.getContent() != null && !aDto.getContent().trim().isEmpty() && aDto.isCorrect()) {
+                    hasCorrectAnswer = true;
+                    break;
+                }
+            }
+        }
+        if (!hasCorrectAnswer) {
+            throw new IllegalArgumentException("Câu hỏi phải có ít nhất 1 đáp án đúng!");
+        }
 
         question.setContent(dto.getContent().trim());
         question.setQuestionType(dto.getQuestionType());

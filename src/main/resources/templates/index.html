@@ -97,10 +97,20 @@
     <section class="hero-banner">
         <h1 class="hero-title">Đánh Giá Năng Lực Lập Trình</h1>
         <p class="hero-subtitle">Hàng trăm đề thi trắc nghiệm Java, Spring Boot, Database chuẩn hóa dành cho học viên CodeGym.</p>
-        <form th:action="@{/exams/search}" method="get" class="search-box">
-            <input type="text" name="keyword" class="search-input" placeholder="Tìm kiếm bài thi, chủ đề...">
-            <button type="submit" class="search-btn"><i class="bi bi-search"></i> Tìm kiếm</button>
-        </form>
+        <div style="max-width: 700px; margin: 0 auto; display: flex; flex-direction: column; gap: 1rem; align-items: center;">
+            <!-- Thanh tìm kiếm bài thi tự luyện -->
+            <form th:action="@{/exams/search}" method="get" class="search-box" style="width: 100%;">
+                <input type="text" name="keyword" class="search-input" placeholder="Tìm kiếm bài thi tự luyện, chủ đề...">
+                <button type="submit" class="search-btn"><i class="bi bi-search"></i> Tìm kiếm</button>
+            </form>
+
+            <!-- Nút Tạo bài thi Online cho Giáo viên -->
+            <div sec:authorize="hasAnyRole('TEACHER', 'ADMIN')" style="margin-top: 0.5rem;">
+                <a th:href="@{/teacher/exam/create-online-room}" style="background: rgba(255, 255, 255, 0.22); color: white; border: 1px solid rgba(255, 255, 255, 0.5); padding: 0.65rem 1.3rem; border-radius: 25px; font-weight: 700; font-size: 0.88rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; backdrop-filter: blur(5px); transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.35)'" onmouseout="this.style.background='rgba(255,255,255,0.22)'">
+                    <i class="bi bi-plus-circle-fill"></i> Tổ chức thi Online
+                </a>
+            </div>
+        </div>
     </section>
 
     <!-- Danh mục nổi bật -->
@@ -111,34 +121,18 @@
         </div>
 
         <div class="category-grid">
-            <a th:href="@{/exams(category='java')}" class="category-card">
-                <div class="category-icon"><i class="bi bi-code-slash"></i></div>
+            <a th:each="cat : ${categories}" th:href="@{/exams/search(categoryId=${cat.id})}" class="category-card">
+                <div class="category-icon" th:style="${cat.name.toLowerCase().contains('spring') ? 'background:#dcfce7; color:#16a34a;' : (cat.name.toLowerCase().contains('db') || cat.name.toLowerCase().contains('mysql') ? 'background:#fef3c7; color:#d97706;' : (cat.name.toLowerCase().contains('web') ? 'background:#fae8ff; color:#c026d3;' : 'background:#e0e7ff; color:#4f46e5;'))}">
+                    <i th:class="${cat.name.toLowerCase().contains('spring') ? 'bi bi-layers-fill' : (cat.name.toLowerCase().contains('db') || cat.name.toLowerCase().contains('mysql') ? 'bi bi-database-fill' : (cat.name.toLowerCase().contains('web') ? 'bi bi-window' : 'bi bi-code-slash'))}"></i>
+                </div>
                 <div class="category-info">
-                    <h4>Java Core</h4>
-                    <p>12 Bài thi</p>
+                    <h4 th:text="${cat.name}">Danh mục</h4>
+                    <p th:text="${cat.examCount + ' Bài thi'}">0 Bài thi</p>
                 </div>
             </a>
-            <a th:href="@{/exams(category='spring')}" class="category-card">
-                <div class="category-icon" style="background:#dcfce7; color:#16a34a;"><i class="bi bi-layers-fill"></i></div>
-                <div class="category-info">
-                    <h4>Spring Boot</h4>
-                    <p>8 Bài thi</p>
-                </div>
-            </a>
-            <a th:href="@{/exams(category='db')}" class="category-card">
-                <div class="category-icon" style="background:#fef3c7; color:#d97706;"><i class="bi bi-database-fill"></i></div>
-                <div class="category-info">
-                    <h4>MySQL & DB</h4>
-                    <p>15 Bài thi</p>
-                </div>
-            </a>
-            <a th:href="@{/exams(category='web')}" class="category-card">
-                <div class="category-icon" style="background:#fae8ff; color:#c026d3;"><i class="bi bi-window"></i></div>
-                <div class="category-info">
-                    <h4>Web Frontend</h4>
-                    <p>10 Bài thi</p>
-                </div>
-            </a>
+            <div th:if="${categories == null or #lists.isEmpty(categories)}" style="grid-column: 1/-1; text-align: center; color: #64748b; padding: 1.5rem;">
+                Chưa có danh mục nào.
+            </div>
         </div>
     </section>
 
@@ -150,52 +144,22 @@
         </div>
 
         <div class="exam-grid">
-            <!-- Sample Exam Card 1 -->
-            <div class="exam-card">
+            <div class="exam-card" th:each="exam : ${exams}">
                 <div class="exam-body">
-                    <span class="exam-badge">Java Core</span>
-                    <h3 class="exam-title">Kiểm tra Kiến thức OOP & Collections Framework</h3>
+                    <span class="exam-badge" th:text="${exam.categoryName}">Danh mục</span>
+                    <h3 class="exam-title" th:text="${exam.title}">Tên bài thi</h3>
                     <div class="exam-meta">
-                        <span><i class="bi bi-clock"></i> 45 phút</span>
-                        <span><i class="bi bi-patch-question"></i> 30 câu</span>
+                        <span><i class="bi bi-clock"></i> <span th:text="${exam.durationMinutes ?: 30}">30</span> phút</span>
+                        <span><i class="bi bi-patch-question"></i> <span th:text="${exam.examQuestions != null ? exam.examQuestions.size() : 0}">20</span> câu</span>
                     </div>
                 </div>
                 <div class="exam-footer">
-                    <span style="font-size: 0.8rem; color: #64748b;"><i class="bi bi-person-check"></i> 1,240 lượt thi</span>
-                    <a th:href="@{/exams/1/detail}" class="btn-start">Vào thi</a>
+                    <span style="font-size: 0.8rem; color: #64748b;"><i class="bi bi-play-circle"></i> Đang mở</span>
+                    <a th:href="@{/exams/{id}/take(id=${exam.id})}" class="btn-start">Vào thi</a>
                 </div>
             </div>
-
-            <!-- Sample Exam Card 2 -->
-            <div class="exam-card">
-                <div class="exam-body">
-                    <span class="exam-badge" style="background:#dcfce7; color:#16a34a;">Spring Boot</span>
-                    <h3 class="exam-title">Spring Data JPA & Security RESTful API</h3>
-                    <div class="exam-meta">
-                        <span><i class="bi bi-clock"></i> 60 phút</span>
-                        <span><i class="bi bi-patch-question"></i> 40 câu</span>
-                    </div>
-                </div>
-                <div class="exam-footer">
-                    <span style="font-size: 0.8rem; color: #64748b;"><i class="bi bi-person-check"></i> 850 lượt thi</span>
-                    <a th:href="@{/exams/2/detail}" class="btn-start">Vào thi</a>
-                </div>
-            </div>
-
-            <!-- Sample Exam Card 3 -->
-            <div class="exam-card">
-                <div class="exam-body">
-                    <span class="exam-badge" style="background:#fef3c7; color:#d97706;">Database</span>
-                    <h3 class="exam-title">SQL Query & Database Indexing Optimization</h3>
-                    <div class="exam-meta">
-                        <span><i class="bi bi-clock"></i> 30 phút</span>
-                        <span><i class="bi bi-patch-question"></i> 20 câu</span>
-                    </div>
-                </div>
-                <div class="exam-footer">
-                    <span style="font-size: 0.8rem; color: #64748b;"><i class="bi bi-person-check"></i> 2,100 lượt thi</span>
-                    <a th:href="@{/exams/3/detail}" class="btn-start">Vào thi</a>
-                </div>
+            <div th:if="${exams == null or #lists.isEmpty(exams)}" style="grid-column: 1/-1; text-align: center; color: #64748b; padding: 2rem;">
+                Hiện chưa có bài thi nào khả dụng.
             </div>
         </div>
     </section>

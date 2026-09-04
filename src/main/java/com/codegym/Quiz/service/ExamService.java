@@ -12,6 +12,8 @@ public interface ExamService {
 
     List<Exam> getActiveExams();
 
+    List<Exam> getOnlineAvailableExams();
+
     List<Exam> getExamsByCreatedBy(String createdBy);
 
     Exam getExamById(Long id);

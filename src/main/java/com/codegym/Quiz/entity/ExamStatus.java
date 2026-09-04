@@ -6,4 +6,4 @@ public enum ExamStatus {
     CLOSED,
     ACTIVE,
     INACTIVE
-}
+}

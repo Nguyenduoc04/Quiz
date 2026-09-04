@@ -75,10 +75,11 @@ public class Exam {
 
     // ─── Constructors ──────────────────────────────────────────────────────
 
-    public Exam() {}
+    public Exam() {
+    }
 
     public Exam(String title, String description, Integer durationMinutes,
-                Double totalScore, Double passingScore, User createdBy) {
+            Double totalScore, Double passingScore, User createdBy) {
         this.title = title;
         this.description = description;
         this.durationMinutes = durationMinutes;
@@ -89,37 +90,102 @@ public class Exam {
 
     // ─── Getters & Setters ─────────────────────────────────────────────────
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public Long getId() {
+        return id;
+    }
 
-    public String getTitle() { return title; }
-    public void setTitle(String title) { this.title = title; }
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
+    public String getTitle() {
+        return title;
+    }
 
-    public Integer getDurationMinutes() { return durationMinutes; }
-    public void setDurationMinutes(Integer durationMinutes) { this.durationMinutes = durationMinutes; }
+    public void setTitle(String title) {
+        this.title = title;
+    }
 
-    public Double getTotalScore() { return totalScore; }
-    public void setTotalScore(Double totalScore) { this.totalScore = totalScore; }
+    public String getDescription() {
+        return description;
+    }
 
-    public Double getPassingScore() { return passingScore; }
-    public void setPassingScore(Double passingScore) { this.passingScore = passingScore; }
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
-    public ExamStatus getStatus() { return status; }
-    public void setStatus(ExamStatus status) { this.status = status; }
+    public Integer getDurationMinutes() {
+        return durationMinutes;
+    }
 
-    public User getCreatedBy() { return createdBy; }
-    public void setCreatedBy(User createdBy) { this.createdBy = createdBy; }
+    public void setDurationMinutes(Integer durationMinutes) {
+        this.durationMinutes = durationMinutes;
+    }
 
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public Double getTotalScore() {
+        return totalScore;
+    }
 
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+    public void setTotalScore(Double totalScore) {
+        this.totalScore = totalScore;
+    }
 
-    public List<ExamQuestion> getExamQuestions() { return examQuestions; }
-    public void setExamQuestions(List<ExamQuestion> examQuestions) { this.examQuestions = examQuestions; }
+    public Double getPassingScore() {
+        return passingScore;
+    }
+
+    public void setPassingScore(Double passingScore) {
+        this.passingScore = passingScore;
+    }
+
+    public ExamStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(ExamStatus status) {
+        this.status = status;
+    }
+
+    public User getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(User createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public List<ExamQuestion> getExamQuestions() {
+        return examQuestions;
+    }
+
+    public void setExamQuestions(List<ExamQuestion> examQuestions) {
+        this.examQuestions = examQuestions;
+    }
+
+    @Transient
+    public String getCategoryName() {
+        if (examQuestions != null && !examQuestions.isEmpty()) {
+            ExamQuestion eq = examQuestions.get(0);
+            if (eq != null && eq.getQuestion() != null && eq.getQuestion().getCategory() != null) {
+                return eq.getQuestion().getCategory().getName();
+            }
+        }
+        return "Chung";
+    }
 }
-

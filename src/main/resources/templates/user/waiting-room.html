@@ -43,41 +43,64 @@
         <div class="room-status">
             <span class="pulse-dot"></span> ĐANG CHỜ GIÁO VIÊN BẮT ĐẦU
         </div>
-        <h1 class="room-title">Kiểm tra 15p - Lớp Java 08/2026</h1>
+        <h1 class="room-title" th:text="${roomName ?: 'Phòng Thi Trực Tuyến'}">Phòng thi Trực tuyến</h1>
         <div class="room-meta">
-            <span><i class="bi bi-person-badge"></i> Giáo viên: Nguyễn Văn A</span>
-            <span><i class="bi bi-clock"></i> Thời lượng: 30 phút</span>
-            <span><i class="bi bi-question-circle"></i> Số câu: 20 câu</span>
-            <span><i class="bi bi-key"></i> Mã PIN: <strong>889-204</strong></span>
+            <span><i class="bi bi-person-badge"></i> Giáo viên: <strong th:text="${teacherName ?: 'Giáo viên'}">Giáo viên</strong></span>
+            <span><i class="bi bi-clock"></i> Thời lượng: <strong th:text="${durationMinutes ?: 30}">30</strong> phút</span>
+            <span><i class="bi bi-key"></i> Mã PIN: <strong th:text="${pin}">889-204</strong></span>
+        </div>
+
+        <!-- Nút dành cho Giáo viên để Bắt đầu thi -->
+        <div th:if="${isTeacher}" style="margin-top: 1.5rem; text-align: center; display: flex; justify-content: center; gap: 1rem;">
+            <form th:action="@{/user/start-online-exam}" method="post">
+                <input type="hidden" name="pin" th:value="${pin}">
+                <button type="submit" style="background:#22c55e; color:white; border:none; padding:0.8rem 2rem; border-radius:12px; font-weight:700; font-size:1.05rem; cursor:pointer; box-shadow: 0 4px 14px rgba(34,197,94,0.3);">
+                    🚀 Bắt đầu bài thi & Mở màn hình Giám sát
+                </button>
+            </form>
+            <a th:href="@{/teacher/room-monitor(pin=${pin})}" style="background:#3b82f6; color:white; border:none; padding:0.8rem 1.5rem; border-radius:12px; font-weight:700; font-size:1rem; text-decoration:none; display:inline-flex; align-items:center; gap:0.5rem;">
+                <i class="bi bi-display"></i> Màn hình Giám sát
+            </a>
         </div>
     </section>
 
     <!-- Danh sách học viên trong phòng -->
     <section class="participants-panel">
         <div class="panel-title">
-            <span><i class="bi bi-people-fill" style="color: #667eea;"></i> Danh sách thí sinh</span>
-            <span class="count-badge" id="onlineCount">12 Thí sinh</span>
+            <span><i class="bi bi-people-fill" style="color: #667eea;"></i> Danh sách thí sinh trong phòng</span>
+            <span class="count-badge" id="onlineCount" th:text="${participants != null ? participants.size() + ' Thí sinh' : '1 Thí sinh'}">1 Thí sinh</span>
         </div>
 
         <div class="user-grid" id="userGrid">
-            <!-- Thí sinh hiện tại -->
-            <div class="user-card" style="border-color: #667eea; background: #f0f4ff;">
-                <div class="user-avatar" style="background: #4f46e5;">Bạn</div>
-                <div class="user-name" th:text="${param.studentName} ?: 'Bạn'">Trần Văn An</div>
+            <div class="user-card" th:each="p : ${participants}" th:style="${p == studentName ? 'border-color: #667eea; background: #f0f4ff;' : ''}">
+                <div class="user-avatar" th:text="${#strings.substring(p, 0, 1)}">U</div>
+                <div class="user-name" th:text="${p}">Thí sinh</div>
             </div>
-
-            <!-- Thí sinh khác -->
-            <div class="user-card"><div class="user-avatar">NL</div><div class="user-name">Nguyễn Văn Long</div></div>
-            <div class="user-card"><div class="user-avatar">PT</div><div class="user-name">Phạm Thu Trang</div></div>
-            <div class="user-card"><div class="user-avatar">LH</div><div class="user-name">Lê Hoàng Nam</div></div>
-            <div class="user-card"><div class="user-avatar">VD</div><div class="user-name">Vũ Thùy Dương</div></div>
         </div>
 
         <div class="waiting-notice">
-            <i class="bi bi-hourglass-split"></i> Bài thi sẽ tự động bắt đầu ngay khi Giáo viên ấn kích hoạt. Vui lòng không đóng trình duyệt.
+            <i class="bi bi-hourglass-split"></i> Bài thi sẽ tự động chuyển sang trang làm bài ngay khi Giáo viên ấn Bắt đầu. Vui lòng giữ nguyên màn hình này!
         </div>
     </section>
 </main>
+
+<script th:inline="javascript">
+    const pin = /*[[${pin}]]*/ '';
+    const examId = /*[[${examId}]]*/ 1;
+    const studentName = /*[[${studentName}]]*/ 'Thí sinh';
+
+    if (pin) {
+        setInterval(() => {
+            fetch('/api/room-status?pin=' + pin)
+                .then(res => res.json())
+                .then(data => {
+                    if (data && data.status === 'IN_PROGRESS') {
+                        window.location.href = '/user/take-online?examId=' + (data.examId || examId) + '&pin=' + pin + '&studentName=' + encodeURIComponent(studentName);
+                    }
+                }).catch(() => {});
+        }, 2000);
+    }
+</script>
 
 </body>
 </html>

@@ -123,13 +123,20 @@ public class AuthenticationHelper {
         return hasRole("ROLE_STUDENT");
     }
 
+    /**
+     * Kiểm tra người dùng có quyền TEACHER không.
+     */
+    public boolean isTeacher() {
+        return hasRole("ROLE_TEACHER");
+    }
+
 
     /**
      * Kiểm tra người dùng có thể lưu kết quả quiz không.
      * Chỉ STUDENT và ADMIN mới được lưu kết quả.
      */
     public boolean canSaveQuizResult() {
-        return isStudent() || isAdmin();
+        return isStudent() || isAdmin() || isTeacher();
     }
 
     /**

@@ -27,8 +27,8 @@ public class ExamServiceImpl implements ExamService {
     private final ExamQuestionRepository examQuestionRepository;
 
     public ExamServiceImpl(ExamRepository examRepository,
-                           QuestionRepository questionRepository,
-                           ExamQuestionRepository examQuestionRepository) {
+            QuestionRepository questionRepository,
+            ExamQuestionRepository examQuestionRepository) {
         this.examRepository = examRepository;
         this.questionRepository = questionRepository;
         this.examQuestionRepository = examQuestionRepository;
@@ -43,7 +43,13 @@ public class ExamServiceImpl implements ExamService {
     @Override
     @Transactional(readOnly = true)
     public List<Exam> getActiveExams() {
-        return examRepository.findByStatus(ExamStatus.ACTIVE);
+        return examRepository.findByStatusIn(List.of(ExamStatus.PUBLISHED));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Exam> getOnlineAvailableExams() {
+        return examRepository.findByStatusIn(List.of(ExamStatus.PUBLISHED, ExamStatus.ACTIVE));
     }
 
     @Override
@@ -158,21 +164,26 @@ public class ExamServiceImpl implements ExamService {
     public void removeQuestionFromExam(Long examId, Long questionId) {
         examQuestionRepository.deleteByExamIdAndQuestionId(examId, questionId);
     }
+
     @Override
     @Transactional(readOnly = true)
     public ExamDetailDTO getExamDetailForStudent(Long examId) {
 
         Exam exam = examRepository.findById(examId)
-                .orElseThrow(() ->
-                        new RuntimeException("Không tìm thấy đề thi ID: " + examId));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đề thi ID: " + examId));
 
-        // Chỉ cho học viên lấy đề đang ACTIVE
-        if (exam.getStatus() != ExamStatus.ACTIVE) {
+        // Kiểm tra chi tiết trạng thái bài thi theo luồng nghiệp vụ
+        if (exam.getStatus() == ExamStatus.DRAFT) {
+            throw new RuntimeException("Đề thi đang ở dạng bản nháp, chưa được công bố");
+        } else if (exam.getStatus() == ExamStatus.CLOSED) {
+            throw new RuntimeException("Đề thi đã kết thúc / đã đóng");
+        } else if (exam.getStatus() == ExamStatus.INACTIVE) {
+            throw new RuntimeException("Đề thi hiện đang bị tạm ngưng bởi giáo viên");
+        } else if (exam.getStatus() != ExamStatus.PUBLISHED && exam.getStatus() != ExamStatus.ACTIVE) {
             throw new RuntimeException("Đề thi hiện không khả dụng");
         }
 
-        List<ExamQuestion> examQuestions =
-                examQuestionRepository.findByExamIdOrderByQuestionOrderAsc(examId);
+        List<ExamQuestion> examQuestions = examQuestionRepository.findByExamIdOrderByQuestionOrderAsc(examId);
 
         ExamDetailDTO examDTO = new ExamDetailDTO();
 
@@ -191,8 +202,7 @@ public class ExamServiceImpl implements ExamService {
 
             Question question = examQuestion.getQuestion();
 
-            ExamQuestionDetailDTO questionDTO =
-                    new ExamQuestionDetailDTO();
+            ExamQuestionDetailDTO questionDTO = new ExamQuestionDetailDTO();
 
             questionDTO.setId(question.getId());
             questionDTO.setContent(question.getContent());
@@ -210,21 +220,23 @@ public class ExamServiceImpl implements ExamService {
 
             for (Answer answer : question.getAnswers()) {
 
-                ExamAnswerDTO answerDTO =
-                        new ExamAnswerDTO(
-                                answer.getId(),
-                                answer.getContent(),
-                                answer.getDisplayOrder()
-                        );
+                ExamAnswerDTO answerDTO = new ExamAnswerDTO(
+                        answer.getId(),
+                        answer.getContent(),
+                        answer.getDisplayOrder());
 
                 answerDTOs.add(answerDTO);
             }
 
+            // Xáo trộn ngẫu nhiên thứ tự các câu trả lời
+            java.util.Collections.shuffle(answerDTOs);
             questionDTO.setAnswers(answerDTOs);
 
             questionDTOs.add(questionDTO);
         }
 
+        // Xáo trộn ngẫu nhiên danh sách câu hỏi khi làm bài
+        java.util.Collections.shuffle(questionDTOs);
         examDTO.setQuestions(questionDTOs);
 
         return examDTO;

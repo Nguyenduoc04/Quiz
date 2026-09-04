@@ -122,11 +122,12 @@ public class CategoryService {
     }
     public CategoryDTO convertToDTO(Category category) {
         long count = categoryRepository.countQuestionsByCategoryId(category.getId());
+        long examCount = categoryRepository.countExamsByCategoryId(category.getId());
         String createdByName = (category.getCreatedBy() != null && category.getCreatedBy().getFullName() != null && !category.getCreatedBy().getFullName().isBlank())
                 ? category.getCreatedBy().getFullName()
                 : (category.getCreatedBy() != null ? category.getCreatedBy().getUsername() : "N/A");
 
-        return new CategoryDTO(
+        CategoryDTO dto = new CategoryDTO(
                 category.getId(),
                 category.getName(),
                 category.getDescription(),
@@ -135,5 +136,7 @@ public class CategoryService {
                 category.getCreatedAt(),
                 count
         );
+        dto.setExamCount(examCount);
+        return dto;
     }
 }

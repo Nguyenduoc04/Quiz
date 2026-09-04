@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Thi Online Realtime - Quiz CodeGym</title>
+    <title th:text="${examTitle != null ? 'Thi Online - ' + examTitle : 'Thi Online Realtime'}">Thi Online Realtime - Quiz CodeGym</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 
     <style>
@@ -12,7 +12,7 @@
 
         /* 1. COUNTDOWN OVERLAY (3 - 2 - 1) */
         .countdown-overlay {
-            position: fixed; inset: 0; background: rgba(15, 23, 42, 0.95);
+            position: fixed; inset: 0; background: rgba(15, 23, 42, 0.96);
             z-index: 3000; display: flex; flex-direction: column; align-items: center; justify-content: center;
             color: white; transition: opacity 0.5s ease, visibility 0.5s;
         }
@@ -53,7 +53,7 @@
         .exam-layout { max-width: 1200px; margin: 1.5rem auto; padding: 0 1.5rem; display: grid; grid-template-columns: 1fr 320px; gap: 1.5rem; flex: 1; width: 100%; }
         @media (max-width: 868px) { .exam-layout { grid-template-columns: 1fr; } }
 
-        .question-card { background: white; border-radius: 16px; border: 1px solid #e2e8f0; padding: 1.8rem; box-shadow: 0 4px 12px rgba(0,0,0,0.02); }
+        .question-card { background: white; border-radius: 16px; border: 1px solid #e2e8f0; padding: 1.8rem; margin-bottom: 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.02); }
         .q-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; padding-bottom: 0.8rem; border-bottom: 1px solid #f1f5f9; }
         .q-title { font-size: 1.1rem; font-weight: 700; color: #0f172a; line-height: 1.5; margin-bottom: 1.5rem; }
 
@@ -64,6 +64,13 @@
         }
         .option-label:hover { border-color: #667eea; background: #f8fafc; }
         .option-label input[type="radio"] { width: 20px; height: 20px; accent-color: #667eea; cursor: pointer; }
+
+        /* NAV BUTTONS INSIDE QUESTION CARD */
+        .q-footer-btns { display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #f1f5f9; }
+        .btn-nav { padding: 0.6rem 1.2rem; border-radius: 10px; border: 1px solid #cbd5e1; background: white; font-weight: 600; font-size: 0.88rem; cursor: pointer; transition: 0.2s; color: #475569; display: flex; align-items: center; gap: 0.4rem; }
+        .btn-nav:hover { background: #f1f5f9; border-color: #94a3b8; }
+        .btn-submit-test { background: #22c55e; color: white; border: none; padding: 0.7rem 1.5rem; border-radius: 10px; font-weight: 700; font-size: 0.92rem; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; gap: 0.5rem; }
+        .btn-submit-test:hover { background: #16a34a; }
 
         /* 4. REALTIME PALETTE & LIVE MONITOR */
         .sidebar-card { background: white; border-radius: 16px; border: 1px solid #e2e8f0; padding: 1.2rem; height: fit-content; position: sticky; top: 80px; }
@@ -77,8 +84,9 @@
         .q-btn.answered { background: #667eea; color: white; border-color: #667eea; }
 
         .live-users-box { background: #f8fafc; border-radius: 10px; padding: 0.8rem; margin-top: 1rem; border: 1px solid #e2e8f0; }
-        .user-mini-list { font-size: 0.8rem; color: #64748b; margin-top: 0.5rem; display: flex; gap: 0.4rem; flex-wrap: wrap; }
+        .user-mini-list { font-size: 0.8rem; color: #64748b; margin-top: 0.5rem; display: flex; gap: 0.4rem; flex-wrap: wrap; max-height: 120px; overflow-y: auto; }
         .user-tag { background: #e0e7ff; color: #4338ca; padding: 0.15rem 0.5rem; border-radius: 6px; font-weight: 600; }
+        .user-tag.self { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
     </style>
 </head>
 <body>
@@ -93,102 +101,154 @@
 <header class="realtime-header">
     <div>
         <div class="live-badge">
-            <span class="pulse-dot"></span> REALTIME SYNC ACTIVE
+            <span class="pulse-dot"></span> THI ONLINE TRỰC TUYẾN
         </div>
-        <strong style="margin-left: 0.5rem; color: #0f172a;" th:text="${roomName} ?: 'Kiểm tra 15p - Lớp Java'">Kiểm tra 15p - Lớp Java</strong>
+        <strong style="margin-left: 0.5rem; color: #0f172a;" th:text="${roomName ?: examTitle}">Kiểm tra Online</strong>
+    </div>
+
+    <div style="font-size: 0.9rem; font-weight: 600; color: #475569;">
+        Thí sinh: <strong th:text="${studentName ?: 'Thí sinh'}" style="color: #667eea;">Thí sinh</strong>
     </div>
 
     <div class="timer-box">
-        <i class="bi bi-stopwatch-fill"></i> <span id="realtimeTimer">30:00</span>
+        <i class="bi bi-stopwatch-fill"></i> <span id="realtimeTimer">00:00</span>
     </div>
 </header>
 
 <main class="exam-layout">
     <!-- Khu vực làm bài -->
-    <section>
-        <div class="question-card">
-            <div class="q-header">
-                <span style="font-weight: 700; color: #667eea; font-size: 0.9rem;">CÂU HỎI 1 / 20</span>
-                <span style="font-size: 0.8rem; color: #64748b;"><i class="bi bi-shield-check"></i> Tự động đồng bộ đáp án</span>
+    <form id="onlineExamForm" th:action="@{/exams/submit}" method="post">
+        <input type="hidden" name="examId" th:value="${examId}">
+        <input type="hidden" name="pin" th:value="${pin}">
+        <input type="hidden" name="studentName" th:value="${studentName}">
+
+        <div id="questionsContainer">
+            <div class="question-card" th:each="q, qStat : ${questions}" th:id="${'q-' + qStat.count}">
+                <div class="q-header">
+                    <span style="font-weight: 700; color: #667eea; font-size: 0.9rem;" th:text="${'CÂU HỎI ' + qStat.count + ' / ' + questions.size()}">CÂU HỎI 1 / 20</span>
+                    <span style="font-size: 0.8rem; color: #64748b;"><i class="bi bi-shield-check"></i> Đồng bộ bài làm</span>
+                </div>
+
+                <div class="q-title" th:text="${q.content}">Nội dung câu hỏi</div>
+
+                <div class="options-grid">
+                    <label class="option-label" th:each="ans : ${q.answers}">
+                        <input type="radio" th:name="${'q_' + q.id}" th:value="${ans.id}" th:attr="onchange=|markAnswered(${qStat.count})|">
+                        <span th:text="${ans.content}">Đáp án</span>
+                    </label>
+                </div>
+
+                <!-- Điều hướng câu trước/sau & Nộp bài -->
+                <div class="q-footer-btns">
+                    <button type="button" class="btn-nav" th:if="${!qStat.first}" th:attr="onclick=|scrollToQuestion(${qStat.count - 1})|">
+                        <i class="bi bi-arrow-left"></i> Câu trước
+                    </button>
+
+                    <div style="margin-left: auto; display: flex; gap: 0.5rem;">
+                        <button type="button" class="btn-nav" th:if="${!qStat.last}" th:attr="onclick=|scrollToQuestion(${qStat.count + 1})|">
+                            Câu tiếp theo <i class="bi bi-arrow-right"></i>
+                        </button>
+                        <button type="submit" class="btn-submit-test" th:if="${qStat.last}">
+                            <i class="bi bi-send-check-fill"></i> Nộp bài thi
+                        </button>
+                    </div>
+                </div>
             </div>
 
-            <div class="q-title">
-                Trong lập trình Java, từ khóa `transient` được sử dụng để làm gì khi serialization một object?
-            </div>
-
-            <div class="options-grid">
-                <label class="option-label" onclick="selectAnswer(1)">
-                    <input type="radio" name="q1" value="A">
-                    <span>A. Bỏ qua thuộc tính không lưu vào quá trình Serialization</span>
-                </label>
-                <label class="option-label" onclick="selectAnswer(1)">
-                    <input type="radio" name="q1" value="B">
-                    <span>B. Đánh dấu thuộc tính là hằng số không thay đổi</span>
-                </label>
-                <label class="option-label" onclick="selectAnswer(1)">
-                    <input type="radio" name="q1" value="C">
-                    <span>C. Bắt buộc thuộc tính phải được mã hóa trước khi ghi ra file</span>
-                </label>
-                <label class="option-label" onclick="selectAnswer(1)">
-                    <input type="radio" name="q1" value="D">
-                    <span>D. Cho phép truy cập đa luồng đồng thời vào thuộc tính</span>
-                </label>
+            <div th:if="${questions == null or #lists.isEmpty(questions)}" style="padding: 2rem; text-align: center; color: #64748b; background: white; border-radius: 16px;">
+                Bài thi này hiện chưa có câu hỏi nào.
             </div>
         </div>
-    </section>
+    </form>
 
     <!-- Sidebar Danh mục câu hỏi & Thí sinh Online -->
     <aside class="sidebar-card">
         <div class="sidebar-title">
             <span>Tiến độ bài làm</span>
-            <span style="font-size: 0.8rem; color: #667eea;" id="progressText">1/20</span>
+            <span style="font-size: 0.8rem; color: #667eea;" th:text="${questions != null ? 'Tổng số ' + questions.size() + ' câu' : '0 câu'}">20 câu</span>
         </div>
 
         <div class="palette-grid">
-            <button class="q-btn answered" id="p-1">1</button>
-            <button class="q-btn" id="p-2">2</button>
-            <button class="q-btn" id="p-3">3</button>
-            <button class="q-btn" id="p-4">4</button>
-            <button class="q-btn" id="p-5">5</button>
+            <button type="button" class="q-btn"
+                    th:each="q, qStat : ${questions}"
+                    th:id="${'p-' + qStat.count}"
+                    th:attr="onclick=|scrollToQuestion(${qStat.count})|"
+                    th:text="${qStat.count}">1</button>
         </div>
 
         <div class="live-users-box">
             <div style="font-size: 0.82rem; font-weight: 700; color: #334155; display: flex; justify-content: space-between;">
-                <span><i class="bi bi-people"></i> Thí sinh cùng phòng:</span>
-                <span style="color: #16a34a;">12 đang làm</span>
+                <span><i class="bi bi-people-fill" style="color: #667eea;"></i> Thí sinh cùng phòng:</span>
+                <span style="color: #16a34a;" th:text="${participants != null ? participants.size() + ' người' : '1 người'}">1 người</span>
             </div>
             <div class="user-mini-list">
-                <span class="user-tag">Bạn</span>
-                <span class="user-tag">Long</span>
-                <span class="user-tag">Trang</span>
-                <span class="user-tag">Nam</span>
+                <span th:each="p : ${participants}"
+                      class="user-tag"
+                      th:classappend="${p == studentName ? 'self' : ''}"
+                      th:text="${p}">Bạn</span>
             </div>
         </div>
+
+        <button type="button" class="btn-submit-test" style="width: 100%; margin-top: 1.5rem; justify-content: center;" onclick="document.getElementById('onlineExamForm').submit()">
+            <i class="bi bi-send-check-fill"></i> Nộp bài thi ngay
+        </button>
     </aside>
 </main>
 
-<script>
-    // JS Xử lý đếm ngược 3 - 2 - 1 khi vào phòng
+<script th:inline="javascript">
+    // 1. JS Xử lý đếm ngược 3 - 2 - 1 khi vào phòng
     let count = 3;
     const countEl = document.getElementById('countdownNum');
     const overlay = document.getElementById('countdownOverlay');
 
-    const timerInterval = setInterval(() => {
+    const countdownInterval = setInterval(() => {
         count--;
         if (count > 0) {
             countEl.innerText = count;
         } else if (count === 0) {
             countEl.innerText = "BẮT ĐẦU!";
         } else {
-            clearInterval(timerInterval);
+            clearInterval(countdownInterval);
             overlay.style.opacity = '0';
             overlay.style.visibility = 'hidden';
+            startMainTimer();
         }
     }, 1000);
 
-    function selectAnswer(qNum) {
+    // 2. Đồng hồ đếm ngược thời gian làm bài
+    let durationMinutes = /*[[${durationMinutes}]]*/ 30;
+    if (!durationMinutes || durationMinutes <= 0) durationMinutes = 30;
+    let timeInSeconds = durationMinutes * 60;
+    const timerText = document.getElementById('realtimeTimer');
+
+    function startMainTimer() {
+        const timerInterval = setInterval(() => {
+            let minutes = Math.floor(timeInSeconds / 60);
+            let seconds = timeInSeconds % 60;
+
+            timerText.innerText = `${minutes < 10 ? '0' : ''}${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+
+            if (timeInSeconds <= 0) {
+                clearInterval(timerInterval);
+                alert('Đã hết thời gian làm bài thi Online! Hệ thống đang tự động nộp bài.');
+                document.getElementById('onlineExamForm').submit();
+            }
+            timeInSeconds--;
+        }, 1000);
+    }
+
+    // 3. Đánh dấu đã trả lời
+    function markAnswered(qNum) {
         const btn = document.getElementById(`p-${qNum}`);
-        if(btn) btn.classList.add('answered');
+        if (btn) btn.classList.add('answered');
+    }
+
+    // 4. Cuộn mượt tới câu hỏi
+    function scrollToQuestion(qNum) {
+        const element = document.getElementById(`q-${qNum}`);
+        if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
     }
 </script>
 </body>

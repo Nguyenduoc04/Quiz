@@ -40,7 +40,7 @@
             padding: 0.9rem 1.2rem; border-radius: 14px; border: 1px solid #e2e8f0; background: #f8fafc; transition: 0.2s;
         }
         .lb-row:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        .lb-row.me { border-color: #6366f1; background: #eeef2; font-weight: 700; }
+        .lb-row.me { border-color: #6366f1; background: #eef2ff; font-weight: 700; }
 
         /* TOP 3 BADGES */
         .rank-num { font-weight: 800; font-size: 1.1rem; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
@@ -69,27 +69,32 @@
 
 <main class="main-container">
     <!-- Tổng quan kết quả cá nhân -->
-    <section class="my-score-card">
+    <section class="my-score-card" th:if="${myResult != null}">
         <div>
             <div class="rank-badge-box">
-                <i class="bi bi-trophy-fill" style="color: #fbbf24;"></i> XẠO HẠNG #2 TOÀN PHÒNG
+                <i class="bi bi-trophy-fill" style="color: #fbbf24;"></i> HẠNG #<span th:text="${myRank}">1</span> TOÀN PHÒNG
             </div>
-            <div class="big-score">9.0 <span style="font-size: 1.2rem; font-weight: 500;">/ 10</span></div>
-            <div class="score-sub">Chúc mừng! Bạn đã hoàn thành bài thi xuất sắc.</div>
+            <div class="big-score">
+                <span th:text="${#numbers.formatDecimal(myResult.score, 1, 1)}">9.0</span>
+                <span style="font-size: 1.2rem; font-weight: 500;">/ 10</span>
+            </div>
+            <div class="score-sub" th:text="${myRank == 1 ? 'Xuất sắc! Bạn đang dẫn đầu bảng xếp hạng phòng thi!' : 'Chúc mừng! Bạn đã hoàn thành bài thi.'}">
+                Chúc mừng! Bạn đã hoàn thành bài thi.
+            </div>
         </div>
 
         <div class="stat-pills">
             <div class="pill-item">
                 <span>Số câu đúng</span>
-                <strong>18 / 20 câu</strong>
+                <strong th:text="${myResult.correctCount + ' / ' + myResult.totalQuestions + ' câu'}">18 / 20 câu</strong>
             </div>
             <div class="pill-item">
-                <span>Thời gian</span>
-                <strong>14 phút 25 giây</strong>
+                <span>Thời gian nộp</span>
+                <strong th:text="${myResult.submitTime}">14:25</strong>
             </div>
             <div class="pill-item">
                 <span>Độ chính xác</span>
-                <strong>90%</strong>
+                <strong th:text="${myResult.totalQuestions > 0 ? T(java.lang.Math).round(myResult.correctCount * 100.0 / myResult.totalQuestions) + '%' : '0%'}">90%</strong>
             </div>
         </div>
     </section>
@@ -98,59 +103,47 @@
     <section class="lb-card">
         <div class="lb-header">
             <div class="lb-title">
-                <i class="bi bi-bar-chart-line-fill" style="color: #6366f1;"></i> Bảng Xếp Hạng Phòng Thi
+                <i class="bi bi-bar-chart-line-fill" style="color: #6366f1;"></i> Bảng Xếp Hạng Phòng Thi Realtime
             </div>
-            <span style="font-size: 0.82rem; color: #64748b;"><i class="bi bi-people"></i> 12 Thí sinh đã nộp</span>
+            <span style="font-size: 0.82rem; color: #64748b;">
+                <i class="bi bi-people"></i> <span th:text="${rankingList != null ? rankingList.size() : 0}">0</span> Thí sinh
+            </span>
         </div>
 
         <div class="lb-list">
-            <!-- Hạng 1 -->
-            <div class="lb-row">
-                <div class="rank-num top-1"><i class="bi bi-award-fill"></i></div>
-                <div class="user-info">
-                    <div class="avatar" style="background: #fef3c7; color: #b45309;">PT</div>
-                    <span style="font-weight: 700; color: #0f172a;">Phạm Thu Trang</span>
+            <div th:each="item : ${rankingList}"
+                 class="lb-row"
+                 th:classappend="${item.isMe ? 'me' : ''}">
+                <div class="rank-num"
+                     th:classappend="${item.rank == 1 ? 'top-1' : (item.rank == 2 ? 'top-2' : (item.rank == 3 ? 'top-3' : 'top-other'))}">
+                    <i th:if="${item.rank == 1}" class="bi bi-award-fill"></i>
+                    <span th:if="${item.rank > 1}" th:text="${item.rank}">2</span>
                 </div>
-                <div class="time-val">12:10</div>
-                <div class="score-val">9.5 điểm</div>
+                <div class="user-info">
+                    <div class="avatar"
+                         th:style="${item.isMe ? 'background: #6366f1; color: white;' : ''}"
+                         th:text="${#strings.substring(item.studentName, 0, 1)}">U</div>
+                    <span style="font-weight: 700;"
+                          th:style="${item.isMe ? 'color: #4338ca;' : 'color: #0f172a;'}"
+                          th:text="${item.studentName + (item.isMe ? ' (Bạn)' : '')}">Thí sinh</span>
+                </div>
+                <div class="time-val">
+                    <span th:if="${item.submitted}" th:text="${item.submitTime}">14:25</span>
+                    <span th:if="${!item.submitted}" style="color: #94a3b8;">Đang làm...</span>
+                </div>
+                <div class="score-val">
+                    <span th:if="${item.submitted}" th:text="${#numbers.formatDecimal(item.score, 1, 1) + ' điểm'}">9.0 điểm</span>
+                    <span th:if="${!item.submitted}" style="color: #94a3b8; font-size: 0.85rem; font-weight: normal;">Chưa nộp</span>
+                </div>
             </div>
 
-            <!-- Hạng 2 (Cá nhân) -->
-            <div class="lb-row me">
-                <div class="rank-num top-2">2</div>
-                <div class="user-info">
-                    <div class="avatar" style="background: #6366f1; color: white;">Bạn</div>
-                    <span style="font-weight: 700; color: #4338ca;" th:text="${studentName} ?: 'Trần Văn An (Bạn)'">Trần Văn An (Bạn)</span>
-                </div>
-                <div class="time-val">14:25</div>
-                <div class="score-val">9.0 điểm</div>
-            </div>
-
-            <!-- Hạng 3 -->
-            <div class="lb-row">
-                <div class="rank-num top-3">3</div>
-                <div class="user-info">
-                    <div class="avatar" style="background: #ffedd5; color: #c2410c;">NL</div>
-                    <span>Nguyễn Văn Long</span>
-                </div>
-                <div class="time-val">18:40</div>
-                <div class="score-val">8.5 điểm</div>
-            </div>
-
-            <!-- Hạng 4 -->
-            <div class="lb-row">
-                <div class="rank-num top-other">4</div>
-                <div class="user-info">
-                    <div class="avatar">LH</div>
-                    <span>Lê Hoàng Nam</span>
-                </div>
-                <div class="time-val">22:15</div>
-                <div class="score-val">7.0 điểm</div>
+            <div th:if="${rankingList == null or #lists.isEmpty(rankingList)}" style="text-align: center; color: #64748b; padding: 2rem;">
+                Chưa có dữ liệu xếp hạng cho bài thi này.
             </div>
         </div>
 
         <div class="btn-group">
-            <a th:href="@{/user/history}" class="btn-action btn-outline"><i class="bi bi-clock-history"></i> Xem lịch sử cá nhân</a>
+            <a th:href="@{/exams/history}" class="btn-action btn-outline"><i class="bi bi-file-earmark-text"></i> Xem chi tiết bài làm</a>
             <a th:href="@{/}" class="btn-action btn-primary"><i class="bi bi-house"></i> Về trang chủ</a>
         </div>
     </section>
