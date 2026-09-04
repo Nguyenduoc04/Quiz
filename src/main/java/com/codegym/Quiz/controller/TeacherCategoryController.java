@@ -19,21 +19,33 @@ public class TeacherCategoryController {
     private final CategoryService categoryService;
     private final AuthenticationHelper authHelper;
 
-    public TeacherCategoryController(CategoryService categoryService, AuthenticationHelper authHelper) {
+    public TeacherCategoryController(
+            CategoryService categoryService,
+            AuthenticationHelper authHelper) {
+
         this.categoryService = categoryService;
         this.authHelper = authHelper;
     }
 
+    /**
+     * Thêm tên người dùng hiện tại vào Model
+     * để hiển thị trên giao diện Teacher.
+     */
     private void injectFullName(Model model) {
         authHelper.getCurrentUser().ifPresent(user -> {
-            String displayName = (user.getFullName() != null && !user.getFullName().isBlank())
-                    ? user.getFullName()
-                    : user.getUsername();
+            String displayName =
+                    (user.getFullName() != null && !user.getFullName().isBlank())
+                            ? user.getFullName()
+                            : user.getUsername();
+
             model.addAttribute("fullName", displayName);
         });
     }
 
-    /** Danh sách danh mục của Giáo viên */
+    /**
+     * Teacher xem danh sách category của chính mình.
+     * Có hỗ trợ tìm kiếm theo keyword và phân trang.
+     */
     @GetMapping
     public String listCategories(
             @RequestParam(defaultValue = "") String keyword,
@@ -42,11 +54,19 @@ public class TeacherCategoryController {
             Model model) {
 
         injectFullName(model);
+
         User currentUser = authHelper.getCurrentUser()
-                .orElseThrow(() -> new IllegalStateException("Người dùng chưa đăng nhập"));
+                .orElseThrow(() ->
+                        new IllegalStateException("Người dùng chưa đăng nhập"));
 
         Pageable pageable = PageRequest.of(page, size);
-        Page<CategoryDTO> categoryPage = categoryService.getCategoriesByUserPaged(currentUser, keyword, pageable);
+
+        Page<CategoryDTO> categoryPage =
+                categoryService.getCategoriesByUserPaged(
+                        currentUser,
+                        keyword,
+                        pageable
+                );
 
         model.addAttribute("categories", categoryPage.getContent());
         model.addAttribute("categoryPage", categoryPage);
@@ -59,77 +79,193 @@ public class TeacherCategoryController {
         return "teacher/category/list";
     }
 
-    /** Form tạo mới danh mục cho Giáo viên */
+    /**
+     * Hiển thị form tạo category mới.
+     */
     @GetMapping("/create")
     public String showCreateForm(Model model) {
+
         injectFullName(model);
+
         model.addAttribute("categoryDTO", new CategoryDTO());
         model.addAttribute("isEdit", false);
+
         return "teacher/category/form";
     }
 
-    /** Xử lý tạo mới danh mục */
+    /**
+     * Teacher tạo category mới.
+     */
     @PostMapping("/create")
     public String createCategory(
             @ModelAttribute("categoryDTO") CategoryDTO categoryDTO,
             RedirectAttributes redirectAttributes) {
-        try {
-            User currentUser = authHelper.getCurrentUser()
-                    .orElseThrow(() -> new IllegalStateException("Người dùng chưa đăng nhập"));
 
-            categoryService.createCategory(categoryDTO, currentUser);
-            redirectAttributes.addFlashAttribute("successMessage", "Tạo danh mục thành công!");
+        try {
+
+            User currentUser = authHelper.getCurrentUser()
+                    .orElseThrow(() ->
+                            new IllegalStateException(
+                                    "Người dùng chưa đăng nhập"
+                            ));
+
+            categoryService.createCategory(
+                    categoryDTO,
+                    currentUser
+            );
+
+            redirectAttributes.addFlashAttribute(
+                    "successMessage",
+                    "Tạo danh mục thành công!"
+            );
+
             return "redirect:/teacher/categories";
+
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
-            redirectAttributes.addFlashAttribute("categoryDTO", categoryDTO);
+
+            redirectAttributes.addFlashAttribute(
+                    "errorMessage",
+                    e.getMessage()
+            );
+
+            redirectAttributes.addFlashAttribute(
+                    "categoryDTO",
+                    categoryDTO
+            );
+
             return "redirect:/teacher/categories/create";
         }
     }
 
-    /** Form cập nhật danh mục của Giáo viên */
+    /**
+     * Hiển thị form chỉnh sửa category.
+     * Chỉ cho phép Teacher sửa category của chính mình.
+     */
     @GetMapping("/{id}/edit")
-    public String showEditForm(@PathVariable("id") Long id, Model model, RedirectAttributes redirectAttributes) {
+    public String showEditForm(
+            @PathVariable("id") Long id,
+            Model model,
+            RedirectAttributes redirectAttributes) {
+
         try {
+
             injectFullName(model);
-            CategoryDTO categoryDTO = categoryService.getCategoryDTOById(id);
+
+            User currentUser = authHelper.getCurrentUser()
+                    .orElseThrow(() ->
+                            new IllegalStateException(
+                                    "Người dùng chưa đăng nhập"
+                            ));
+
+            CategoryDTO categoryDTO =
+                    categoryService.getCategoryDTOByIdAndUser(
+                            id,
+                            currentUser
+                    );
+
             model.addAttribute("categoryDTO", categoryDTO);
             model.addAttribute("isEdit", true);
+
             return "teacher/category/form";
+
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+
+            redirectAttributes.addFlashAttribute(
+                    "errorMessage",
+                    e.getMessage()
+            );
+
             return "redirect:/teacher/categories";
         }
     }
 
-    /** Xử lý cập nhật danh mục */
+    /**
+     * Teacher cập nhật category.
+     * Chỉ cho phép cập nhật category của chính mình.
+     */
     @PostMapping("/{id}/edit")
     public String updateCategory(
             @PathVariable("id") Long id,
             @ModelAttribute("categoryDTO") CategoryDTO categoryDTO,
             RedirectAttributes redirectAttributes) {
-        try {
-            User currentUser = authHelper.getCurrentUser()
-                    .orElseThrow(() -> new IllegalStateException("Người dùng chưa đăng nhập"));
 
-            categoryService.updateCategory(id, categoryDTO, currentUser);
-            redirectAttributes.addFlashAttribute("successMessage", "Cập nhật danh mục thành công!");
+        try {
+
+            User currentUser = authHelper.getCurrentUser()
+                    .orElseThrow(() ->
+                            new IllegalStateException(
+                                    "Người dùng chưa đăng nhập"
+                            ));
+
+            // Kiểm tra category có thuộc Teacher hiện tại hay không
+            categoryService.getCategoryByIdAndUser(
+                    id,
+                    currentUser
+            );
+
+            categoryService.updateCategory(
+                    id,
+                    categoryDTO,
+                    currentUser
+            );
+
+            redirectAttributes.addFlashAttribute(
+                    "successMessage",
+                    "Cập nhật danh mục thành công!"
+            );
+
             return "redirect:/teacher/categories";
+
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+
+            redirectAttributes.addFlashAttribute(
+                    "errorMessage",
+                    e.getMessage()
+            );
+
             return "redirect:/teacher/categories/" + id + "/edit";
         }
     }
 
-    /** Xóa danh mục */
+    /**
+     * Teacher xóa category.
+     * Chỉ được xóa category của chính mình.
+     * Category đang chứa câu hỏi sẽ không được phép xóa.
+     */
     @PostMapping("/{id}/delete")
-    public String deleteCategory(@PathVariable("id") Long id, RedirectAttributes redirectAttributes) {
+    public String deleteCategory(
+            @PathVariable("id") Long id,
+            RedirectAttributes redirectAttributes) {
+
         try {
+
+            User currentUser = authHelper.getCurrentUser()
+                    .orElseThrow(() ->
+                            new IllegalStateException(
+                                    "Người dùng chưa đăng nhập"
+                            ));
+
+            // Kiểm tra ownership trước khi xóa
+            categoryService.getCategoryByIdAndUser(
+                    id,
+                    currentUser
+            );
+
             categoryService.deleteCategory(id);
-            redirectAttributes.addFlashAttribute("successMessage", "Xóa danh mục thành công!");
+
+            redirectAttributes.addFlashAttribute(
+                    "successMessage",
+                    "Xóa danh mục thành công!"
+            );
+
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+
+            redirectAttributes.addFlashAttribute(
+                    "errorMessage",
+                    e.getMessage()
+            );
         }
+
         return "redirect:/teacher/categories";
     }
 }
