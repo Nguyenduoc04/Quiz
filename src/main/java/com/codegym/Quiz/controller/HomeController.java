@@ -2,6 +2,8 @@ package com.codegym.Quiz.controller;
 
 import com.codegym.Quiz.authentication.util.AuthenticationHelper;
 import com.codegym.Quiz.entity.User;
+import com.codegym.Quiz.service.CategoryService;
+import com.codegym.Quiz.service.ExamService;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -13,31 +15,35 @@ import java.util.Optional;
 public class HomeController {
 
     private final AuthenticationHelper authHelper;
+    private final CategoryService categoryService;
+    private final ExamService examService;
 
-    public HomeController(AuthenticationHelper authHelper) {
+    public HomeController(AuthenticationHelper authHelper,
+                          CategoryService categoryService,
+                          ExamService examService) {
         this.authHelper = authHelper;
+        this.categoryService = categoryService;
+        this.examService = examService;
     }
 
     /**
-     * Trang gốc – redirect thông minh theo trạng thái đăng nhập và role.
+     * Trang gốc – render Landing page index.html nếu chưa đăng nhập hoặc là học sinh/user thường.
+     * Admin sẽ redirect tới /admin/dashboard.
      */
     @GetMapping("/")
-    public String home(Authentication authentication) {
+    public String home(Authentication authentication, Model model) {
         if (authentication != null && authentication.isAuthenticated()
                 && !(authentication.getPrincipal() instanceof String
                      && authentication.getPrincipal().equals("anonymousUser"))) {
-            // Đã đăng nhập → redirect theo role
             if (authHelper.isAdmin()) {
                 return "redirect:/admin/dashboard";
             }
         }
-        // Chưa đăng nhập hoặc user thường → vào dashboard (public)
-        return "redirect:/dashboard";
+        return dashboard(model, authentication);
     }
 
     /**
-     * Dashboard dành cho ROLE_USER và ROLE_STUDENT.
-     * ROLE_ADMIN được redirect từ / về /admin/dashboard.
+     * Trang chủ / Dashboard dành cho học viên và khách công khai.
      */
     @GetMapping("/dashboard")
     public String dashboard(Model model, Authentication authentication) {
@@ -50,24 +56,24 @@ public class HomeController {
             model.addAttribute("username", authentication.getName());
             model.addAttribute("roles", authentication.getAuthorities());
 
-            // Lấy thông tin đầy đủ từ DB để hiển thị fullName
             Optional<User> userOpt = authHelper.getCurrentUser();
             userOpt.ifPresent(user -> {
                 model.addAttribute("fullName",
                         user.getFullName() != null ? user.getFullName() : user.getUsername());
             });
 
-            // Thông tin quyền để dashboard biết hiển thị gì
             model.addAttribute("isStudent", authHelper.isStudent());
             model.addAttribute("isAdmin", authHelper.isAdmin());
             model.addAttribute("canSaveResult", authHelper.canSaveQuizResult());
         } else {
-            // Khách chưa đăng nhập – giá trị mặc định
             model.addAttribute("isStudent", false);
             model.addAttribute("isAdmin", false);
             model.addAttribute("canSaveResult", false);
         }
 
-        return "dashboard";
+        model.addAttribute("categories", categoryService.getAllCategoryDTOs());
+        model.addAttribute("exams", examService.getActiveExams());
+
+        return "index";
     }
 }

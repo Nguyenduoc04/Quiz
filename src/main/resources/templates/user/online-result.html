@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kết quả & Bảng xếp hạng - Quiz CodeGym</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f0f4f8; color: #1a1a2e; min-height: 100vh; display: flex; flex-direction: column; }
+        .main-container { max-width: 900px; margin: 2rem auto; padding: 0 1.5rem; flex: 1; width: 100%; }
+
+        /* USER SUMMARY HEADER */
+        .my-score-card {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); color: white;
+            border-radius: 24px; padding: 2rem; box-shadow: 0 10px 25px rgba(79, 70, 229, 0.25);
+            margin-bottom: 2rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; align-items: center;
+        }
+        @media (max-width: 640px) { .my-score-card { grid-template-columns: 1fr; text-align: center; } }
+
+        .rank-badge-box {
+            display: inline-flex; align-items: center; gap: 0.6rem; background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(8px); padding: 0.4rem 1rem; border-radius: 20px; font-weight: 700; font-size: 0.88rem; margin-bottom: 0.8rem;
+        }
+        .big-score { font-size: 3rem; font-weight: 900; line-height: 1; margin-bottom: 0.2rem; }
+        .score-sub { font-size: 0.85rem; opacity: 0.85; }
+
+        .stat-pills { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem; }
+        .pill-item { background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 12px; font-size: 0.82rem; }
+        .pill-item strong { display: block; font-size: 1rem; }
+
+        /* LEADERBOARD TABLE */
+        .lb-card { background: white; border-radius: 20px; border: 1px solid #e2e8f0; padding: 1.8rem; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
+        .lb-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        .lb-title { font-size: 1.2rem; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 0.5rem; }
+
+        .lb-list { display: flex; flex-direction: column; gap: 0.8rem; }
+        .lb-row {
+            display: grid; grid-template-columns: 50px 1fr 100px 100px; align-items: center;
+            padding: 0.9rem 1.2rem; border-radius: 14px; border: 1px solid #e2e8f0; background: #f8fafc; transition: 0.2s;
+        }
+        .lb-row:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .lb-row.me { border-color: #6366f1; background: #eef2ff; font-weight: 700; }
+
+        /* TOP 3 BADGES */
+        .rank-num { font-weight: 800; font-size: 1.1rem; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .top-1 { background: #fef3c7; color: #b45309; }
+        .top-2 { background: #e2e8f0; color: #475569; }
+        .top-3 { background: #ffedd5; color: #c2410c; }
+        .top-other { background: #f1f5f9; color: #64748b; font-size: 0.9rem; }
+
+        .user-info { display: flex; align-items: center; gap: 0.8rem; }
+        .avatar { width: 36px; height: 36px; border-radius: 50%; background: #cbd5e1; color: #334155; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; }
+
+        .score-val { font-weight: 800; color: #16a34a; text-align: right; }
+        .time-val { font-size: 0.82rem; color: #64748b; text-align: right; }
+
+        .btn-group { display: flex; justify-content: center; gap: 1rem; margin-top: 2rem; }
+        .btn-action { padding: 0.75rem 1.5rem; border-radius: 12px; font-weight: 600; text-decoration: none; font-size: 0.9rem; transition: 0.2s; display: inline-flex; align-items: center; gap: 0.5rem; }
+        .btn-primary { background: #6366f1; color: white; }
+        .btn-primary:hover { background: #4f46e5; }
+        .btn-outline { background: white; border: 1px solid #cbd5e1; color: #475569; }
+        .btn-outline:hover { background: #f8fafc; }
+    </style>
+</head>
+<body>
+
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="main-container">
+    <!-- Tổng quan kết quả cá nhân -->
+    <section class="my-score-card" th:if="${myResult != null}">
+        <div>
+            <div class="rank-badge-box">
+                <i class="bi bi-trophy-fill" style="color: #fbbf24;"></i> HẠNG #<span th:text="${myRank}">1</span> TOÀN PHÒNG
+            </div>
+            <div class="big-score">
+                <span th:text="${#numbers.formatDecimal(myResult.score, 1, 1)}">9.0</span>
+                <span style="font-size: 1.2rem; font-weight: 500;">/ 10</span>
+            </div>
+            <div class="score-sub" th:text="${myRank == 1 ? 'Xuất sắc! Bạn đang dẫn đầu bảng xếp hạng phòng thi!' : 'Chúc mừng! Bạn đã hoàn thành bài thi.'}">
+                Chúc mừng! Bạn đã hoàn thành bài thi.
+            </div>
+        </div>
+
+        <div class="stat-pills">
+            <div class="pill-item">
+                <span>Số câu đúng</span>
+                <strong th:text="${myResult.correctCount + ' / ' + myResult.totalQuestions + ' câu'}">18 / 20 câu</strong>
+            </div>
+            <div class="pill-item">
+                <span>Thời gian nộp</span>
+                <strong th:text="${myResult.submitTime}">14:25</strong>
+            </div>
+            <div class="pill-item">
+                <span>Độ chính xác</span>
+                <strong th:text="${myResult.totalQuestions > 0 ? T(java.lang.Math).round(myResult.correctCount * 100.0 / myResult.totalQuestions) + '%' : '0%'}">90%</strong>
+            </div>
+        </div>
+    </section>
+
+    <!-- Bảng xếp hạng Realtime -->
+    <section class="lb-card">
+        <div class="lb-header">
+            <div class="lb-title">
+                <i class="bi bi-bar-chart-line-fill" style="color: #6366f1;"></i> Bảng Xếp Hạng Phòng Thi Realtime
+            </div>
+            <span style="font-size: 0.82rem; color: #64748b;">
+                <i class="bi bi-people"></i> <span th:text="${rankingList != null ? rankingList.size() : 0}">0</span> Thí sinh
+            </span>
+        </div>
+
+        <div class="lb-list">
+            <div th:each="item : ${rankingList}"
+                 class="lb-row"
+                 th:classappend="${item.isMe ? 'me' : ''}">
+                <div class="rank-num"
+                     th:classappend="${item.rank == 1 ? 'top-1' : (item.rank == 2 ? 'top-2' : (item.rank == 3 ? 'top-3' : 'top-other'))}">
+                    <i th:if="${item.rank == 1}" class="bi bi-award-fill"></i>
+                    <span th:if="${item.rank > 1}" th:text="${item.rank}">2</span>
+                </div>
+                <div class="user-info">
+                    <div class="avatar"
+                         th:style="${item.isMe ? 'background: #6366f1; color: white;' : ''}"
+                         th:text="${#strings.substring(item.studentName, 0, 1)}">U</div>
+                    <span style="font-weight: 700;"
+                          th:style="${item.isMe ? 'color: #4338ca;' : 'color: #0f172a;'}"
+                          th:text="${item.studentName + (item.isMe ? ' (Bạn)' : '')}">Thí sinh</span>
+                </div>
+                <div class="time-val">
+                    <span th:if="${item.submitted}" th:text="${item.submitTime}">14:25</span>
+                    <span th:if="${!item.submitted}" style="color: #94a3b8;">Đang làm...</span>
+                </div>
+                <div class="score-val">
+                    <span th:if="${item.submitted}" th:text="${#numbers.formatDecimal(item.score, 1, 1) + ' điểm'}">9.0 điểm</span>
+                    <span th:if="${!item.submitted}" style="color: #94a3b8; font-size: 0.85rem; font-weight: normal;">Chưa nộp</span>
+                </div>
+            </div>
+
+            <div th:if="${rankingList == null or #lists.isEmpty(rankingList)}" style="text-align: center; color: #64748b; padding: 2rem;">
+                Chưa có dữ liệu xếp hạng cho bài thi này.
+            </div>
+        </div>
+
+        <div class="btn-group">
+            <a th:href="@{/exams/history}" class="btn-action btn-outline"><i class="bi bi-file-earmark-text"></i> Xem chi tiết bài làm</a>
+            <a th:href="@{/}" class="btn-action btn-primary"><i class="bi bi-house"></i> Về trang chủ</a>
+        </div>
+    </section>
+</main>
+
+</body>
+</html>

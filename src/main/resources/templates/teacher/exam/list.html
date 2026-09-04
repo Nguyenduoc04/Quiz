@@ -26,9 +26,17 @@
                 <h2 class="fw-bold mb-1" style="color: #1a1a2e;">📝 Danh Sách Đề Thi</h2>
                 <p class="text-muted mb-0">Tạo mới và thiết lập danh sách câu hỏi cho đề thi</p>
             </div>
-            <a th:href="@{/teacher/exams/create}" class="btn btn-gradient px-4 py-2">
-                <i class="bi bi-plus-lg me-1"></i> Tạo mới đề thi
-            </a>
+            <div class="d-flex gap-2">
+                <a th:href="@{/teacher/exams/results}" class="btn btn-outline-primary px-3 py-2 rounded-pill fw-semibold me-1">
+                    <i class="bi bi-clock-history me-1"></i> Lịch sử bài làm
+                </a>
+                <a th:href="@{/teacher/exam/create-online-room}" class="btn btn-success px-3 py-2 text-white fw-semibold rounded-pill">
+                    <i class="bi bi-broadcast me-1"></i> 📡 Tổ chức thi Online
+                </a>
+                <a th:href="@{/teacher/exams/create}" class="btn btn-gradient px-4 py-2">
+                    <i class="bi bi-plus-lg me-1"></i> Tạo mới đề thi
+                </a>
+            </div>
         </div>
 
         <div class="table-responsive">
@@ -40,7 +48,7 @@
                     <th>Thời gian</th>
                     <th>Trạng thái</th>
                     <th>Người tạo</th>
-                    <th style="width: 160px;" class="text-center">Thao tác</th>
+                    <th style="width: 300px;" class="text-center">Thao tác</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -52,12 +60,20 @@
                     </td>
                     <td th:text="${exam.durationMinutes + ' phút'}">60 phút</td>
                     <td>
-                        <span th:if="${exam.status.name() == 'ACTIVE' or exam.status.name() == 'PUBLISHED'}" class="badge bg-success">Hoạt động</span>
                         <span th:if="${exam.status.name() == 'DRAFT'}" class="badge bg-warning text-dark">Bản nháp</span>
-                        <span th:if="${exam.status.name() == 'INACTIVE' or exam.status.name() == 'CLOSED'}" class="badge bg-secondary">Đã đóng</span>
+                        <span th:if="${exam.status.name() == 'PUBLISHED'}" class="badge bg-info text-dark">Đã công bố</span>
+                        <span th:if="${exam.status.name() == 'ACTIVE'}" class="badge bg-success">Mở làm bài</span>
+                        <span th:if="${exam.status.name() == 'CLOSED'}" class="badge bg-secondary">Đã đóng</span>
+                        <span th:if="${exam.status.name() == 'INACTIVE'}" class="badge bg-danger">Tạm ngưng</span>
                     </td>
                     <td th:text="${exam.createdBy != null ? (exam.createdBy.fullName != null ? exam.createdBy.fullName : exam.createdBy.username) : 'N/A'}">Teacher</td>
                     <td class="text-center">
+                        <a th:href="@{/teacher/exams/results(examId=${exam.id})}" class="btn btn-sm btn-info text-white me-1" title="Xem lịch sử nộp bài của thí sinh">
+                            <i class="bi bi-clock-history"></i> Kết quả
+                        </a>
+                        <a th:href="@{/teacher/exam/create-online-room(examId=${exam.id})}" class="btn btn-sm btn-success text-white me-1" title="Khởi tạo phòng thi Online ngay">
+                            <i class="bi bi-broadcast"></i> Thi Online
+                        </a>
                         <a th:href="@{/teacher/exams/edit/{id}(id=${exam.id})}" class="btn btn-sm btn-light border me-1" title="Chỉnh sửa & Quản lý câu hỏi">
                             <i class="bi bi-pencil text-warning me-1"></i> Sửa
                         </a>

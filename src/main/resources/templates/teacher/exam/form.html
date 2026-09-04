@@ -1,95 +1,140 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
-    <title th:text="${exam.id == null ? 'Tạo Đề Thi Mới - Quiz CodeGym' : 'Cập Nhật Đề Thi - Quiz CodeGym'}">Form Đề Thi</title>
+    <title th:text="${exam.id == null ? 'Tạo Đề Thi Mới - Quiz CodeGym' : 'Cập Nhật Đề Thi - Quiz CodeGym'}">Form Đề Thi
+    </title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; min-height: 100vh; }
-        .main-container { max-width: 900px; margin: 2rem auto; padding: 0 1.5rem; }
-        .card-custom { background: white; border-radius: 16px; padding: 2rem; box-shadow: 0 4px 24px rgba(0, 0, 0, 0.07); border: none; }
-        .btn-gradient { background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; font-weight: 500; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f0f4f8;
+            min-height: 100vh;
+        }
+
+        .main-container {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+
+        .card-custom {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.07);
+            border: none;
+        }
+
+        .btn-gradient {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            font-weight: 500;
+        }
     </style>
 </head>
+
 <body>
 
-<!-- Top Navbar -->
-<div th:replace="~{fragments/navbar :: navbar}"></div>
+    <!-- Top Navbar -->
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
 
-<div class="main-container">
-    <form th:action="${exam.id == null ? '/teacher/exams/create' : '/teacher/exams/edit/' + exam.id}"
-          th:object="${exam}" method="post">
+    <div class="main-container">
+        <form th:action="${exam.id == null ? '/teacher/exams/create' : '/teacher/exams/edit/' + exam.id}"
+            th:object="${exam}" method="post">
 
-        <!-- Card 1: Thông tin đề thi -->
-        <div class="card-custom mb-4">
-            <h3 class="fw-bold mb-3" style="color: #1a1a2e;" th:text="${exam.id == null ? '➕ Tạo Mới Đề Thi' : '✏️ Chỉnh Sửa Đề Thi'}">Thông tin đề thi</h3>
-            <p class="text-muted mb-4">Điền thông tin và thời gian bài thi bên dưới</p>
+            <!-- Card 1: Thông tin đề thi -->
+            <div class="card-custom mb-4">
+                <h3 class="fw-bold mb-3" style="color: #1a1a2e;"
+                    th:text="${exam.id == null ? '➕ Tạo Mới Đề Thi' : '✏️ Chỉnh Sửa Đề Thi'}">Thông tin đề thi</h3>
+                <p class="text-muted mb-4">Điền thông tin và thời gian bài thi bên dưới</p>
 
-            <div class="mb-3">
-                <label for="title" class="form-label fw-semibold">Tên đề thi <span class="text-danger">*</span></label>
-                <input type="text" id="title" th:field="*{title}" class="form-control" placeholder="Nhập tên đề thi..." required>
-            </div>
-
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <label for="durationMinutes" class="form-label fw-semibold">Thời gian làm bài (Phút) <span class="text-danger">*</span></label>
-                    <input type="number" id="durationMinutes" th:field="*{durationMinutes}" class="form-control" min="1" required>
+                <div class="mb-3">
+                    <label for="title" class="form-label fw-semibold">Tên đề thi <span
+                            class="text-danger">*</span></label>
+                    <input type="text" id="title" th:field="*{title}" class="form-control"
+                        placeholder="Nhập tên đề thi..." required>
                 </div>
-                <div class="col-md-6">
-                    <label for="status" class="form-label fw-semibold">Trạng thái <span class="text-danger">*</span></label>
-                    <select id="status" th:field="*{status}" class="form-select">
-                        <option th:each="st : ${statuses}"
-                                th:value="${st}"
-                                th:text="${st.name() == 'DRAFT' ? 'Bản nháp' : (st.name() == 'ACTIVE' or st.name() == 'PUBLISHED' ? 'Hoạt động' : 'Đã đóng')}">
-                        </option>
-                    </select>
-                </div>
-            </div>
 
-            <div class="mb-2">
-                <label for="description" class="form-label fw-semibold">Mô tả bài thi</label>
-                <textarea id="description" th:field="*{description}" class="form-control" rows="3" placeholder="Nhập mô tả cho bài thi..."></textarea>
-            </div>
-        </div>
-
-        <!-- Card 2: Chọn câu hỏi cho bài thi -->
-        <div class="card-custom mb-4">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <div>
-                    <h5 class="mb-0 fw-bold" style="color: #1a1a2e;">📋 Chọn câu hỏi cho đề thi</h5>
-                    <small class="text-muted">Tích chọn các câu hỏi bên dưới để đưa vào đề thi này</small>
-                </div>
-            </div>
-
-            <div class="list-group mb-3">
-                <label th:each="q : ${questions}" class="list-group-item d-flex gap-3 py-3 align-items-start border rounded mb-2">
-                    <input class="form-check-input flex-shrink-0 mt-1" type="checkbox" name="questionIds" th:value="${q.id}" th:checked="${selectedQuestionIds != null and selectedQuestionIds.contains(q.id)}" style="font-size: 1.2em;">
-                    <div class="flex-grow-1">
-                        <strong class="d-block text-dark mb-1" th:text="${q.content}">Nội dung câu hỏi?</strong>
-                        <div class="d-flex gap-2 align-items-center">
-                            <span class="badge bg-primary" th:text="${q.category != null ? q.category.name : 'Chưa phân loại'}">Danh mục</span>
-                            <span class="badge bg-secondary" th:text="${q.difficultyLevel != null ? q.difficultyLevel : 'MEDIUM'}">Dễ</span>
-                            <span class="text-muted small" th:text="${'Điểm: ' + q.score}">Điểm: 1.0</span>
-                        </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="durationMinutes" class="form-label fw-semibold">Thời gian làm bài (Phút) <span
+                                class="text-danger">*</span></label>
+                        <input type="number" id="durationMinutes" th:field="*{durationMinutes}" class="form-control"
+                            min="1" required>
                     </div>
-                </label>
-                <div th:if="${#lists.isEmpty(questions)}" class="text-center py-4 text-muted">
-                    Chưa có câu hỏi nào trong Ngân hàng câu hỏi.
+                    <div class="col-md-6">
+                        <label for="status" class="form-label fw-semibold">Trạng thái <span
+                                class="text-danger">*</span></label>
+                        <select id="status" th:field="*{status}" class="form-select">
+                            <option th:each="st : ${statuses}"
+                                    th:value="${st}"
+                                    th:text="${st.name() == 'DRAFT' ? 'Bản nháp' : (st.name() == 'PUBLISHED' ? 'Đã công bố' : (st.name() == 'ACTIVE' ? 'Đang mở làm bài' : (st.name() == 'CLOSED' ? 'Đã đóng' : 'Tạm ngưng')))}">
+                            </option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-2">
+                    <label for="description" class="form-label fw-semibold">Mô tả bài thi</label>
+                    <textarea id="description" th:field="*{description}" class="form-control" rows="3"
+                        placeholder="Nhập mô tả cho bài thi..."></textarea>
                 </div>
             </div>
-        </div>
 
-        <div class="d-flex justify-content-end gap-2">
-            <a th:href="@{/teacher/exams}" class="btn btn-outline-secondary rounded-pill px-4">Hủy bỏ</a>
-            <button type="submit" class="btn btn-gradient rounded-pill px-4">
-                <i class="bi bi-save me-1"></i> <span th:text="${exam.id == null ? 'Tạo đề thi' : 'Cập nhật đề thi'}">Lưu</span>
-            </button>
-        </div>
-    </form>
-</div>
+            <!-- Card 2: Chọn câu hỏi cho bài thi -->
+            <div class="card-custom mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h5 class="mb-0 fw-bold" style="color: #1a1a2e;">📋 Chọn câu hỏi cho đề thi</h5>
+                        <small class="text-muted">Tích chọn các câu hỏi bên dưới để đưa vào đề thi này</small>
+                    </div>
+                </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+                <div class="list-group mb-3">
+                    <label th:each="q : ${questions}"
+                        class="list-group-item d-flex gap-3 py-3 align-items-start border rounded mb-2">
+                        <input class="form-check-input flex-shrink-0 mt-1" type="checkbox" name="questionIds"
+                            th:value="${q.id}"
+                            th:checked="${selectedQuestionIds != null and selectedQuestionIds.contains(q.id)}"
+                            style="font-size: 1.2em;">
+                        <div class="flex-grow-1">
+                            <strong class="d-block text-dark mb-1" th:text="${q.content}">Nội dung câu hỏi?</strong>
+                            <div class="d-flex gap-2 align-items-center">
+                                <span class="badge bg-primary"
+                                    th:text="${q.category != null ? q.category.name : 'Chưa phân loại'}">Danh mục</span>
+                                <span class="badge bg-secondary"
+                                    th:text="${q.difficultyLevel != null ? q.difficultyLevel : 'MEDIUM'}">Dễ</span>
+                                <span class="text-muted small" th:text="${'Điểm: ' + q.score}">Điểm: 1.0</span>
+                            </div>
+                        </div>
+                    </label>
+                    <div th:if="${#lists.isEmpty(questions)}" class="text-center py-4 text-muted">
+                        Chưa có câu hỏi nào trong Ngân hàng câu hỏi.
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2">
+                <a th:href="@{/teacher/exams}" class="btn btn-outline-secondary rounded-pill px-4">Hủy bỏ</a>
+                <button type="submit" class="btn btn-gradient rounded-pill px-4">
+                    <i class="bi bi-save me-1"></i> <span
+                        th:text="${exam.id == null ? 'Tạo đề thi' : 'Cập nhật đề thi'}">Lưu</span>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>

@@ -41,6 +41,9 @@ public class ExamController {
     @Autowired
     private AuthenticationHelper authHelper;
 
+    @Autowired
+    private com.codegym.Quiz.service.ExamResultService examResultService;
+
     private String getBaseUrl(HttpServletRequest request) {
         String uri = request.getRequestURI();
         if (uri.startsWith("/admin")) {
@@ -205,5 +208,57 @@ public class ExamController {
     public String removeQuestion(@PathVariable Long examId, @PathVariable Long questionId, HttpServletRequest request) {
         examService.removeQuestionFromExam(examId, questionId);
         return "redirect:" + getBaseUrl(request) + "/edit/" + examId;
+    }
+
+    // 6. Hiển thị Lịch sử nộp bài & Điểm số của Thí sinh (Dành cho Giáo viên & Admin)
+    @GetMapping({"/results", "/exam-results"})
+    public String showExamResultsList(
+            @RequestParam(value = "examId", required = false) Long examId,
+            Model model,
+            HttpServletRequest request) {
+
+        injectViewMetadata(model, request);
+
+        User currentUser = authHelper.getCurrentUser().orElse(null);
+        List<com.codegym.Quiz.dto.ExamResultDTO> results;
+
+        if (examId != null && examId > 0) {
+            results = examResultService.getResultsForExam(examId);
+            model.addAttribute("selectedExamId", examId);
+        } else if (isAdminView(request)) {
+            results = examResultService.getResultsForExam(null);
+        } else {
+            results = examResultService.getResultsForTeacher(currentUser);
+        }
+
+        List<Exam> teacherExams = (currentUser != null) ? examService.getExamsByCreatedBy(currentUser.getUsername()) : examService.getAllExams();
+
+        model.addAttribute("results", results);
+        model.addAttribute("exams", teacherExams);
+
+        return getViewPath(request, "results-list");
+    }
+
+    // 7. Xem chi tiết bài làm của Thí sinh (Dành cho Giáo viên & Admin)
+    @GetMapping({"/results/{resultId}", "/exam-results/{resultId}"})
+    public String viewStudentResultDetail(
+            @PathVariable Long resultId,
+            Model model,
+            HttpServletRequest request,
+            org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes) {
+
+        try {
+            injectViewMetadata(model, request);
+            com.codegym.Quiz.dto.ExamResultDTO result = examResultService.getResultById(resultId);
+            if (result == null) {
+                throw new IllegalArgumentException("Không tìm thấy bài làm ID: " + resultId);
+            }
+            model.addAttribute("result", result);
+            model.addAttribute("isTeacherView", true);
+            return "exams/result";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:" + getBaseUrl(request) + "/results";
+        }
     }
 }

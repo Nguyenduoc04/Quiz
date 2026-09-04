@@ -13,9 +13,11 @@ import java.util.List;
 @Repository
 public interface ExamRepository extends JpaRepository<Exam, Long> {
 
-    /** Lấy Exam kèm danh sách câu hỏi (JOIN FETCH để tránh LazyInitializationException) */
-    @org.springframework.data.jpa.repository.Query(
-        "SELECT e FROM Exam e LEFT JOIN FETCH e.examQuestions eq LEFT JOIN FETCH eq.question WHERE e.id = :id")
+    /**
+     * Lấy Exam kèm danh sách câu hỏi (JOIN FETCH để tránh
+     * LazyInitializationException)
+     */
+    @org.springframework.data.jpa.repository.Query("SELECT e FROM Exam e LEFT JOIN FETCH e.examQuestions eq LEFT JOIN FETCH eq.question WHERE e.id = :id")
     java.util.Optional<Exam> findByIdWithQuestions(@org.springframework.data.repository.query.Param("id") Long id);
 
     /** Phân trang danh sách bài thi theo người tạo (Giáo viên) */
@@ -26,8 +28,9 @@ public interface ExamRepository extends JpaRepository<Exam, Long> {
 
     List<Exam> findByStatus(ExamStatus status);
 
+    List<Exam> findByStatusIn(List<ExamStatus> statuses);
+
     List<Exam> findByCreatedBy(User createdBy);
 
     List<Exam> findByCreatedByUsername(String username);
 }
-

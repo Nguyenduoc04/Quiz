@@ -15,7 +15,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import jakarta.servlet.http.HttpServletRequest;
 
 @Controller
-@RequestMapping({"/admin/questions", "/teacher/questions"})
+@RequestMapping("/admin/questions")
 public class QuestionController {
 
     private final QuestionService questionService;
@@ -31,18 +31,9 @@ public class QuestionController {
     }
 
     private String getBaseUrl(HttpServletRequest request) {
-        String uri = request.getRequestURI();
-        if (uri.startsWith("/admin")) {
-            return "/admin/questions";
-        }
-        return "/teacher/questions";
+        return "/admin/questions";
     }
 
-    private boolean isAdminView(HttpServletRequest request) {
-        return request.getRequestURI().startsWith("/admin");
-    }
-
-    /** Inject fullName & view metadata vào Model */
     private void injectViewMetadata(Model model, HttpServletRequest request) {
         authHelper.getCurrentUser().ifPresent(user -> {
             String displayName = (user.getFullName() != null && !user.getFullName().isBlank())
@@ -51,14 +42,11 @@ public class QuestionController {
             model.addAttribute("fullName", displayName);
         });
         model.addAttribute("baseUrl", getBaseUrl(request));
-        model.addAttribute("isAdminView", isAdminView(request));
+        model.addAttribute("isAdminView", true);
     }
 
     private String getViewPath(HttpServletRequest request, String pageName) {
-        if (isAdminView(request)) {
-            return "admin/question/" + pageName;
-        }
-        return "teacher/question/" + pageName;
+        return "admin/question/" + pageName;
     }
 
     @GetMapping

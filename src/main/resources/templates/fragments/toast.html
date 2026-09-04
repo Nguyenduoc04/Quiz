@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="toast">
+    <style>
+        .toast-container {
+            position: fixed; top: 20px; right: 20px; z-index: 3000;
+            display: flex; flex-direction: column; gap: 0.8rem;
+        }
+        .toast-item {
+            background: white; border-radius: 12px; padding: 1rem 1.2rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-left: 5px solid #22c55e;
+            display: flex; align-items: center; gap: 0.8rem; min-width: 300px;
+            animation: slideIn 0.3s ease-out forwards;
+        }
+        .toast-item.error { border-left-color: #ef4444; }
+        .toast-title { font-weight: 700; font-size: 0.9rem; color: #0f172a; }
+        .toast-desc { font-size: 0.82rem; color: #64748b; }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    </style>
+
+    <div class="toast-container" id="toastContainer">
+        <!-- Thông báo Thành công -->
+        <div th:if="${successMessage}" class="toast-item">
+            <i class="bi bi-check-circle-fill" style="color: #22c55e; font-size: 1.3rem;"></i>
+            <div>
+                <div class="toast-title">Thành công</div>
+                <div class="toast-desc" th:text="${successMessage}">Thao tác thành công!</div>
+            </div>
+        </div>
+
+        <!-- Thông báo Lỗi -->
+        <div th:if="${errorMessage}" class="toast-item error">
+            <i class="bi bi-exclamation-triangle-fill" style="color: #ef4444; font-size: 1.3rem;"></i>
+            <div>
+                <div class="toast-title" style="color: #ef4444;">Đã có lỗi xảy ra</div>
+                <div class="toast-desc" th:text="${errorMessage}">Vui lòng thử lại sau.</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tự động ẩn Toast sau 4 giây
+        setTimeout(() => {
+            const container = document.getElementById('toastContainer');
+            if (container) container.style.display = 'none';
+        }, 4000);
+    </script>
+</div>
+
+</body>
+</html>

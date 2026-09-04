@@ -18,9 +18,9 @@ public class Question {
 
     /** Loại câu hỏi */
     public enum QuestionType {
-        SINGLE_CHOICE,   // Một đáp án đúng
-        MULTIPLE_CHOICE, // Nhiều đáp án đúng
-        TRUE_FALSE       // Đúng/Sai
+        SINGLE_CHOICE,
+        MULTIPLE_CHOICE,
+        TRUE_FALSE
     }
 
     /** Mức độ khó */
@@ -58,12 +58,12 @@ public class Question {
 
     /** Danh mục câu hỏi */
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id")
+    @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
     /** Người tạo câu hỏi */
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "created_by")
+    @JoinColumn(name = "created_by", nullable = false)
     private User createdBy;
 
     /** Thời điểm tạo */
@@ -74,11 +74,16 @@ public class Question {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    /** Danh sách đáp án của câu hỏi này */
-    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    /** Danh sách đáp án */
+    @OneToMany(
+            mappedBy = "question",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true,
+            fetch = FetchType.LAZY
+    )
     private List<Answer> answers = new ArrayList<>();
 
-    // ─── Lifecycle callbacks ───────────────────────────────────────────────
+    // ─── Lifecycle callbacks ─────────────────────────────
 
     @PrePersist
     protected void onCreate() {
@@ -91,16 +96,26 @@ public class Question {
         updatedAt = LocalDateTime.now();
     }
 
-    // ─── Constructors ──────────────────────────────────────────────────────
+    // ─── Constructors ────────────────────────────────────
 
-    public Question() {}
+    public Question() {
+    }
 
+    /**
+     * Constructor được sử dụng khi chỉ cần khởi tạo nội dung câu hỏi.
+     */
     public Question(String content) {
         this.content = content;
     }
 
-    public Question(String content, QuestionType questionType, DifficultyLevel difficultyLevel,
-                    Double score, Category category, User createdBy) {
+    public Question(
+            String content,
+            QuestionType questionType,
+            DifficultyLevel difficultyLevel,
+            Double score,
+            Category category,
+            User createdBy) {
+
         this.content = content;
         this.questionType = questionType;
         this.difficultyLevel = difficultyLevel;
@@ -109,39 +124,93 @@ public class Question {
         this.createdBy = createdBy;
     }
 
-    // ─── Getters & Setters ─────────────────────────────────────────────────
+    // ─── Getters & Setters ───────────────────────────────
 
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public Long getId() {
+        return id;
+    }
 
-    public String getContent() { return content; }
-    public void setContent(String content) { this.content = content; }
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-    public QuestionType getQuestionType() { return questionType; }
-    public void setQuestionType(QuestionType questionType) { this.questionType = questionType; }
+    public String getContent() {
+        return content;
+    }
 
-    public DifficultyLevel getDifficultyLevel() { return difficultyLevel; }
-    public void setDifficultyLevel(DifficultyLevel difficultyLevel) { this.difficultyLevel = difficultyLevel; }
+    public void setContent(String content) {
+        this.content = content;
+    }
 
-    public Double getScore() { return score; }
-    public void setScore(Double score) { this.score = score; }
+    public QuestionType getQuestionType() {
+        return questionType;
+    }
 
-    public String getExplanation() { return explanation; }
-    public void setExplanation(String explanation) { this.explanation = explanation; }
+    public void setQuestionType(QuestionType questionType) {
+        this.questionType = questionType;
+    }
 
-    public Category getCategory() { return category; }
-    public void setCategory(Category category) { this.category = category; }
+    public DifficultyLevel getDifficultyLevel() {
+        return difficultyLevel;
+    }
 
-    public User getCreatedBy() { return createdBy; }
-    public void setCreatedBy(User createdBy) { this.createdBy = createdBy; }
+    public void setDifficultyLevel(DifficultyLevel difficultyLevel) {
+        this.difficultyLevel = difficultyLevel;
+    }
 
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public Double getScore() {
+        return score;
+    }
 
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+    public void setScore(Double score) {
+        this.score = score;
+    }
 
-    public List<Answer> getAnswers() { return answers; }
-    public void setAnswers(List<Answer> answers) { this.answers = answers; }
+    public String getExplanation() {
+        return explanation;
+    }
+
+    public void setExplanation(String explanation) {
+        this.explanation = explanation;
+    }
+
+    public Category getCategory() {
+        return category;
+    }
+
+    public void setCategory(Category category) {
+        this.category = category;
+    }
+
+    public User getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(User createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public List<Answer> getAnswers() {
+        return answers;
+    }
+
+    public void setAnswers(List<Answer> answers) {
+        this.answers = answers;
+    }
 }
-

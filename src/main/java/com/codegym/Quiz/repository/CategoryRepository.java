@@ -57,7 +57,10 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     @Query("SELECT COUNT(q) FROM Question q WHERE q.category.id = :categoryId")
     long countQuestionsByCategoryId(@Param("categoryId") Long categoryId);
 
+    /** Đếm số bài thi trong 1 danh mục */
+    @Query("SELECT COUNT(DISTINCT e) FROM Exam e JOIN e.examQuestions eq JOIN eq.question q WHERE q.category.id = :categoryId")
+    long countExamsByCategoryId(@Param("categoryId") Long categoryId);
+
     /** Tìm danh mục theo tên chính xác */
     Optional<Category> findByName(String name);
 }
-

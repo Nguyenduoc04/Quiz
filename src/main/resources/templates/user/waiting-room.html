@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phòng chờ thi Online - Quiz CodeGym</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f0f4f8; color: #1a1a2e; min-height: 100vh; display: flex; flex-direction: column; }
+        .main-container { max-width: 900px; margin: 2rem auto; padding: 0 1.5rem; flex: 1; width: 100%; }
+
+        /* HEADER CARD */
+        .room-card { background: white; border-radius: 20px; padding: 2rem; border: 1px solid #e2e8f0; box-shadow: 0 4px 15px rgba(0,0,0,0.03); margin-bottom: 1.5rem; }
+        .room-status { display: inline-flex; align-items: center; gap: 0.5rem; background: #fef3c7; color: #b45309; padding: 0.3rem 0.9rem; border-radius: 20px; font-weight: 700; font-size: 0.82rem; margin-bottom: 1rem; }
+        .pulse-dot { width: 8px; height: 8px; background: #f59e0b; border-radius: 50%; animation: pulse 1.2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(1.3); } }
+
+        .room-title { font-size: 1.5rem; font-weight: 800; color: #0f172a; margin-bottom: 0.5rem; }
+        .room-meta { display: flex; gap: 1.5rem; font-size: 0.88rem; color: #64748b; flex-wrap: wrap; }
+
+        /* PARTICIPANTS GRID */
+        .participants-panel { background: white; border-radius: 20px; padding: 1.8rem; border: 1px solid #e2e8f0; }
+        .panel-title { font-size: 1.1rem; font-weight: 700; color: #0f172a; margin-bottom: 1.2rem; display: flex; justify-content: space-between; align-items: center; }
+        .count-badge { background: #e0e7ff; color: #4f46e5; padding: 0.2rem 0.7rem; border-radius: 12px; font-size: 0.85rem; font-weight: 700; }
+
+        .user-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 1rem; }
+        .user-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1rem 0.8rem; text-align: center; transition: 0.2s; }
+        .user-avatar { width: 44px; height: 44px; border-radius: 50%; background: #667eea; color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; margin: 0 auto 0.6rem; }
+        .user-name { font-size: 0.85rem; font-weight: 600; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        /* WAITING NOTICE */
+        .waiting-notice { text-align: center; margin-top: 2rem; padding: 1.5rem; background: #edf2f7; border-radius: 14px; color: #475569; font-size: 0.9rem; font-weight: 600; }
+    </style>
+</head>
+<body>
+
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="main-container">
+    <!-- Thông tin phòng -->
+    <section class="room-card">
+        <div class="room-status">
+            <span class="pulse-dot"></span> ĐANG CHỜ GIÁO VIÊN BẮT ĐẦU
+        </div>
+        <h1 class="room-title" th:text="${roomName ?: 'Phòng Thi Trực Tuyến'}">Phòng thi Trực tuyến</h1>
+        <div class="room-meta">
+            <span><i class="bi bi-person-badge"></i> Giáo viên: <strong th:text="${teacherName ?: 'Giáo viên'}">Giáo viên</strong></span>
+            <span><i class="bi bi-clock"></i> Thời lượng: <strong th:text="${durationMinutes ?: 30}">30</strong> phút</span>
+            <span><i class="bi bi-key"></i> Mã PIN: <strong th:text="${pin}">889-204</strong></span>
+        </div>
+
+        <!-- Nút dành cho Giáo viên để Bắt đầu thi -->
+        <div th:if="${isTeacher}" style="margin-top: 1.5rem; text-align: center; display: flex; justify-content: center; gap: 1rem;">
+            <form th:action="@{/user/start-online-exam}" method="post">
+                <input type="hidden" name="pin" th:value="${pin}">
+                <button type="submit" style="background:#22c55e; color:white; border:none; padding:0.8rem 2rem; border-radius:12px; font-weight:700; font-size:1.05rem; cursor:pointer; box-shadow: 0 4px 14px rgba(34,197,94,0.3);">
+                    🚀 Bắt đầu bài thi & Mở màn hình Giám sát
+                </button>
+            </form>
+            <a th:href="@{/teacher/room-monitor(pin=${pin})}" style="background:#3b82f6; color:white; border:none; padding:0.8rem 1.5rem; border-radius:12px; font-weight:700; font-size:1rem; text-decoration:none; display:inline-flex; align-items:center; gap:0.5rem;">
+                <i class="bi bi-display"></i> Màn hình Giám sát
+            </a>
+        </div>
+    </section>
+
+    <!-- Danh sách học viên trong phòng -->
+    <section class="participants-panel">
+        <div class="panel-title">
+            <span><i class="bi bi-people-fill" style="color: #667eea;"></i> Danh sách thí sinh trong phòng</span>
+            <span class="count-badge" id="onlineCount" th:text="${participants != null ? participants.size() + ' Thí sinh' : '1 Thí sinh'}">1 Thí sinh</span>
+        </div>
+
+        <div class="user-grid" id="userGrid">
+            <div class="user-card" th:each="p : ${participants}" th:style="${p == studentName ? 'border-color: #667eea; background: #f0f4ff;' : ''}">
+                <div class="user-avatar" th:text="${#strings.substring(p, 0, 1)}">U</div>
+                <div class="user-name" th:text="${p}">Thí sinh</div>
+            </div>
+        </div>
+
+        <div class="waiting-notice">
+            <i class="bi bi-hourglass-split"></i> Bài thi sẽ tự động chuyển sang trang làm bài ngay khi Giáo viên ấn Bắt đầu. Vui lòng giữ nguyên màn hình này!
+        </div>
+    </section>
+</main>
+
+<script th:inline="javascript">
+    const pin = /*[[${pin}]]*/ '';
+    const examId = /*[[${examId}]]*/ 1;
+    const studentName = /*[[${studentName}]]*/ 'Thí sinh';
+
+    if (pin) {
+        setInterval(() => {
+            fetch('/api/room-status?pin=' + pin)
+                .then(res => res.json())
+                .then(data => {
+                    if (data && data.status === 'IN_PROGRESS') {
+                        window.location.href = '/user/take-online?examId=' + (data.examId || examId) + '&pin=' + pin + '&studentName=' + encodeURIComponent(studentName);
+                    }
+                }).catch(() => {});
+        }, 2000);
+    }
+</script>
+
+</body>
+</html>

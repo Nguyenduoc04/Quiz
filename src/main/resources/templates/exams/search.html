@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tìm kiếm bài thi - Quiz CodeGym</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f0f4f8; color: #1a1a2e; min-height: 100vh; display: flex; flex-direction: column; }
+        .main-container { max-width: 1200px; margin: 2rem auto; padding: 0 1.5rem; flex: 1; width: 100%; }
+
+        /* SEARCH & FILTER LAYOUT */
+        .search-layout { display: grid; grid-template-columns: 280px 1fr; gap: 1.5rem; }
+        @media (max-width: 768px) { .search-layout { grid-template-columns: 1fr; } }
+
+        /* FILTER SIDEBAR */
+        .filter-card { background: white; border-radius: 16px; padding: 1.5rem; border: 1px solid #e2e8f0; height: fit-content; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
+        .filter-title { font-size: 1.1rem; font-weight: 700; color: #0f172a; margin-bottom: 1.2rem; display: flex; align-items: center; gap: 0.5rem; }
+        .filter-group { margin-bottom: 1.2rem; }
+        .filter-label { font-size: 0.88rem; font-weight: 600; color: #475569; margin-bottom: 0.5rem; display: block; }
+
+        .form-control, .form-select {
+            width: 100%; padding: 0.6rem 0.9rem; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem; outline: none; transition: border-color 0.2s;
+        }
+        .form-control:focus, .form-select:focus { border-color: #667eea; }
+
+        .btn-filter { background: #667eea; color: white; border: none; width: 100%; padding: 0.7rem; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .btn-filter:hover { background: #5a67d8; }
+        .btn-reset { background: transparent; color: #64748b; border: 1px solid #cbd5e1; width: 100%; padding: 0.6rem; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 0.5rem; text-align: center; text-decoration: none; display: block; font-size: 0.85rem; }
+
+        /* RESULTS AREA */
+        .results-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; background: white; padding: 1rem 1.2rem; border-radius: 12px; border: 1px solid #e2e8f0; }
+        .results-count { font-size: 0.95rem; color: #475569; }
+
+        .exam-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.2rem; }
+        .exam-card { background: white; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; transition: all 0.25s ease; display: flex; flex-direction: column; }
+        .exam-card:hover { transform: translateY(-4px); box-shadow: 0 10px 20px rgba(0,0,0,0.06); }
+        .exam-body { padding: 1.2rem; flex: 1; }
+        .badge-cat { background: #e0e7ff; color: #4f46e5; font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: 6px; }
+        .badge-level { font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: 6px; }
+        .level-easy { background: #dcfce7; color: #15803d; }
+        .level-medium { background: #fef3c7; color: #b45309; }
+        .level-hard { background: #fee2e2; color: #b91c1c; }
+
+        .exam-title { font-size: 1rem; font-weight: 700; color: #0f172a; margin: 0.6rem 0; line-height: 1.4; }
+        .exam-meta { display: flex; gap: 0.8rem; font-size: 0.8rem; color: #64748b; }
+        .exam-footer { padding: 0.8rem 1.2rem; background: #f8fafc; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
+        .btn-start { background: #667eea; color: white; text-decoration: none; padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.82rem; font-weight: 600; }
+
+        /* PAGINATION */
+        .pagination { display: flex; justify-content: center; gap: 0.4rem; margin-top: 2rem; list-style: none; }
+        .page-link { padding: 0.5rem 0.9rem; background: white; border: 1px solid #e2e8f0; border-radius: 8px; color: #475569; text-decoration: none; font-size: 0.9rem; font-weight: 600; }
+        .page-item.active .page-link { background: #667eea; color: white; border-color: #667eea; }
+
+        footer { background: white; text-align: center; padding: 1.5rem; border-top: 1px solid #e2e8f0; color: #64748b; font-size: 0.88rem; margin-top: auto; }
+    </style>
+</head>
+<body>
+
+<!-- Nhúng Navbar -->
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="main-container">
+    <div class="search-layout">
+
+        <!-- Sidebar Bộ lọc -->
+        <aside class="filter-card">
+            <div class="filter-title">
+                <i class="bi bi-funnel-fill" style="color:#667eea;"></i> Bộ lọc bài thi
+            </div>
+            <form th:action="@{/exams/search}" method="get">
+
+                <div class="filter-group">
+                    <label class="filter-label">Từ khóa</label>
+                    <input type="text" name="keyword" th:value="${param.keyword}" class="form-control" placeholder="Tên bài thi...">
+                </div>
+
+                <div class="filter-group">
+                    <label class="filter-label">Danh mục</label>
+                    <select name="categoryId" class="form-select">
+                        <option value="">Tất cả danh mục</option>
+                        <option th:each="cat : ${categories}"
+                                th:value="${cat.id}"
+                                th:text="${cat.name}"
+                                th:selected="${param.categoryId != null and param.categoryId[0] == #strings.toString(cat.id)}">
+                            Java Core
+                        </option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label class="filter-label">Độ khó</label>
+                    <select name="level" class="form-select">
+                        <option value="">Tất cả cấp độ</option>
+                        <option value="EASY" th:selected="${param.level != null and param.level[0] == 'EASY'}">Dễ</option>
+                        <option value="MEDIUM" th:selected="${param.level != null and param.level[0] == 'MEDIUM'}">Trung bình</option>
+                        <option value="HARD" th:selected="${param.level != null and param.level[0] == 'HARD'}">Khó</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label class="filter-label">Thời lượng</label>
+                    <select name="duration" class="form-select">
+                        <option value="">Tất cả thời lượng</option>
+                        <option value="15" th:selected="${param.duration != null and param.duration[0] == '15'}">Dưới 15 phút</option>
+                        <option value="45" th:selected="${param.duration != null and param.duration[0] == '45'}">15 - 45 phút</option>
+                        <option value="60" th:selected="${param.duration != null and param.duration[0] == '60'}">Trên 45 phút</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn-filter"><i class="bi bi-search"></i> Áp dụng</button>
+                <a th:href="@{/exams/search}" class="btn-reset">Xóa bộ lọc</a>
+            </form>
+        </aside>
+
+        <!-- Danh sách kết quả -->
+        <section>
+            <div class="results-header">
+                <div class="results-count">
+                    Tìm thấy <strong style="color:#667eea;" th:text="${totalElements ?: 3}">3</strong> bài thi phù hợp
+                </div>
+                <div>
+                    <select class="form-select" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;" onchange="this.form.submit()">
+                        <option value="newest">Mới nhất</option>
+                        <option value="popular">Lượt thi nhiều nhất</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="exam-grid">
+                <div class="exam-card" th:each="exam : ${exams}">
+                    <div class="exam-body">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span class="badge-cat" th:text="${exam.categoryName}">Danh mục</span>
+                            <span class="badge-level level-easy" th:text="${exam.status != null ? exam.status : 'ACTIVE'}">ACTIVE</span>
+                        </div>
+                        <h3 class="exam-title" th:text="${exam.title}">Tiêu đề bài thi</h3>
+                        <div class="exam-meta">
+                            <span><i class="bi bi-clock"></i> <span th:text="${exam.durationMinutes ?: 30}">30</span> phút</span>
+                            <span><i class="bi bi-question-circle"></i> <span th:text="${exam.examQuestions != null ? exam.examQuestions.size() : 0}">20</span> câu</span>
+                        </div>
+                    </div>
+                    <div class="exam-footer">
+                        <span style="font-size: 0.78rem; color: #64748b;"><i class="bi bi-play-circle"></i> Đang mở</span>
+                        <a th:href="@{/exams/{id}/take(id=${exam.id})}" class="btn-start">Vào thi</a>
+                    </div>
+                </div>
+                <div th:if="${exams == null or #lists.isEmpty(exams)}" style="grid-column: 1/-1; text-align: center; color: #64748b; padding: 2rem;">
+                    Không tìm thấy bài thi nào phù hợp.
+                </div>
+            </div>
+
+            <!-- Phân trang (Pagination) -->
+            <ul class="pagination">
+                <li class="page-item"><a href="#" class="page-link">«</a></li>
+                <li class="page-item active"><a href="#" class="page-link">1</a></li>
+                <li class="page-item"><a href="#" class="page-link">2</a></li>
+                <li class="page-item"><a href="#" class="page-link">3</a></li>
+                <li class="page-item"><a href="#" class="page-link">»</a></li>
+            </ul>
+        </section>
+
+    </div>
+</main>
+
+<footer>
+    <p>&copy; 2026 Quiz CodeGym. Nền tảng luyện thi & Đánh giá năng lực.</p>
+</footer>
+
+</body>
+</html>

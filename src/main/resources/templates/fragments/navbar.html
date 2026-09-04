@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-
 <body>
 
     <div th:fragment="navbar">
+        <link rel="stylesheet" th:href="@{/css/micro-animations.css}">
         <style>
             .custom-navbar {
                 background: linear-gradient(135deg, #667eea, #764ba2);
@@ -118,7 +118,12 @@
                 </a>
             </div>
 
-            <div class="nav-right" style="display: flex; align-items: center; gap: 1rem;">
+            <div class="nav-right" style="display: flex; align-items: center; gap: 0.8rem;">
+                <!-- Nút Nhanh Nhập Mã Phòng Thi Online -->
+                <a th:href="@{/user/join-room}" style="background: rgba(255, 255, 255, 0.2); color: white; border: 1px solid rgba(255, 255, 255, 0.4); padding: 0.45rem 1rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 0.4rem; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.32)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">
+                    <i class="bi bi-broadcast"></i> Nhập mã PIN
+                </a>
+
                 <!-- Đã đăng nhập (kiểm tra chuẩn Spring Security) -->
                 <div class="user-dropdown-container" sec:authorize="isAuthenticated()">
                     <button class="user-dropdown-btn">
@@ -135,6 +140,13 @@
                             </a>
                             <a th:href="@{/user/change-password}" class="custom-dropdown-item">
                                 🔑 Đổi mật khẩu
+                            </a>
+                            <a th:href="@{/exams/history}" class="custom-dropdown-item">
+                                📜 Lịch sử bài làm
+                            </a>
+                            <!-- Quyền Teacher / Admin: Tổ chức thi Online -->
+                            <a sec:authorize="hasAnyRole('TEACHER', 'ADMIN')" th:href="@{/teacher/exam/create-online-room}" class="custom-dropdown-item" style="font-weight: 600; color: #4f46e5 !important;">
+                                📡 Tổ chức thi Online
                             </a>
                             <!-- Quyền Admin -->
                             <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/dashboard}"
@@ -153,6 +165,10 @@
                             <a sec:authorize="hasRole('TEACHER') and !hasRole('ADMIN')" th:href="@{/teacher/exams}"
                                 class="custom-dropdown-item" style="font-weight: 600;">
                                 📝 Danh sách bài thi
+                            </a>
+                            <a sec:authorize="hasAnyRole('TEACHER', 'ADMIN')" th:href="@{/teacher/exams/results}"
+                                class="custom-dropdown-item" style="font-weight: 600; color: #2563eb !important;">
+                                📊 Bài làm của học sinh
                             </a>
                             <!-- Chỉ hiển thị cho tài khoản CHƯA phải là Teacher hoặc Admin -->
                             <a sec:authorize="!hasAnyRole('TEACHER', 'ADMIN')" href="#" class="custom-dropdown-item"

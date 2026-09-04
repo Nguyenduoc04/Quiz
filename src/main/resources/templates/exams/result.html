@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kết quả bài thi - Quiz CodeGym</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f0f4f8; color: #1a1a2e; min-height: 100vh; display: flex; flex-direction: column; }
+        .main-container { max-width: 900px; margin: 2rem auto; padding: 0 1.5rem; flex: 1; width: 100%; }
+
+        /* DARK SCORE SUMMARY CARDS */
+        .dark-stat-card {
+            background: #181c28;
+            border: 1px solid #2d3446;
+            border-radius: 16px;
+            padding: 1.8rem 2rem;
+            margin-bottom: 1.25rem;
+            color: #ffffff;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            text-align: left;
+        }
+        .card-header-flex {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.2rem;
+        }
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .total-q-badge {
+            color: #94a3b8;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+        .accuracy-bar-wrapper {
+            position: relative;
+            display: flex;
+            height: 22px;
+            background: #ef4444;
+            border-radius: 20px;
+            overflow: visible;
+            margin: 1.5rem 0 1rem 0;
+        }
+        .accuracy-bar-green {
+            height: 100%;
+            background: #22c55e;
+            border-top-left-radius: 20px;
+            border-bottom-left-radius: 20px;
+            transition: width 0.5s ease;
+        }
+        .accuracy-bar-red {
+            height: 100%;
+            background: #ef4444;
+            border-top-right-radius: 20px;
+            border-bottom-right-radius: 20px;
+            flex-grow: 1;
+        }
+        .accuracy-percent-badge {
+            position: absolute;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            background: #0f172a;
+            border: 1px solid #334155;
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 0.9rem;
+            padding: 0.2rem 0.65rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            white-space: nowrap;
+            z-index: 2;
+        }
+        .stats-pills-row {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        .stat-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.55rem 1.2rem;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+        .pill-correct {
+            background: rgba(34, 197, 94, 0.12);
+            border: 1px solid rgba(34, 197, 94, 0.35);
+            color: #4ade80;
+        }
+        .pill-incorrect {
+            background: rgba(239, 68, 68, 0.12);
+            border: 1px solid rgba(239, 68, 68, 0.35);
+            color: #f87171;
+        }
+
+        .action-btns { display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; margin-top: 1.5rem; }
+        .btn { padding: 0.7rem 1.5rem; border-radius: 10px; font-weight: 600; text-decoration: none; font-size: 0.9rem; transition: 0.2s; display: inline-flex; align-items: center; gap: 0.5rem; }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-primary:hover { background: #5a67d8; }
+        .btn-outline { background: white; border: 1px solid #cbd5e1; color: #475569; }
+        .btn-outline:hover { background: #f8fafc; }
+
+        /* REVIEW ANSWERS SECTION */
+        .review-section { background: white; border-radius: 16px; border: 1px solid #e2e8f0; padding: 1.5rem; }
+        .review-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 1.2rem; color: #0f172a; display: flex; align-items: center; gap: 0.5rem; }
+        .question-box { border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.2rem; margin-bottom: 1rem; }
+        .question-box.correct-border { border-left: 5px solid #22c55e; }
+        .question-box.wrong-border { border-left: 5px solid #ef4444; }
+
+        .opt-review { padding: 0.6rem 0.9rem; border-radius: 8px; margin-top: 0.5rem; font-size: 0.9rem; display: flex; justify-content: space-between; align-items: center; }
+        .opt-review.user-correct { background: #dcfce7; color: #15803d; font-weight: 600; }
+        .opt-review.user-wrong { background: #fee2e2; color: #b91c1c; font-weight: 600; }
+        .opt-review.correct-target { background: #f0fdf4; border: 1px dashed #22c55e; color: #15803d; }
+    </style>
+</head>
+<body>
+
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<main class="main-container" th:with="accuracyPercent=${result != null and result.totalQuestions > 0 ? T(java.lang.Math).round(result.correctCount * 100.0 / result.totalQuestions) : 0}">
+    <div th:if="${isGuest}" style="background:#e0f2fe; color:#0369a1; padding:0.9rem; border-radius:12px; font-weight:600; text-align:center; margin-bottom:1.5rem;">
+        <i class="bi bi-info-circle-fill me-1"></i> Bạn đang làm bài dưới dạng Khách vãng lai. Kết quả này không được lưu vào hệ thống. Đăng nhập để lưu lịch sử làm bài!
+    </div>
+
+    <div style="text-align: center; margin-bottom: 1.5rem;">
+        <h2 style="font-size: 1.6rem; color: #0f172a; font-weight: 700;" th:text="${result != null ? result.examTitle : 'Kết quả bài thi'}">Kết quả bài thi</h2>
+    </div>
+
+    <!-- Accuracy Card -->
+    <div class="dark-stat-card">
+        <div class="card-header-flex">
+            <h3 class="card-title">
+                Accuracy <i class="bi bi-info-circle" style="font-size: 0.85rem; opacity: 0.6;"></i>
+            </h3>
+        </div>
+        <div class="accuracy-bar-wrapper">
+            <div class="accuracy-bar-green" th:style="'width: ' + ${accuracyPercent} + '%; border-top-right-radius: ' + (${accuracyPercent == 100} ? '20px' : '0') + '; border-bottom-right-radius: ' + (${accuracyPercent == 100} ? '20px' : '0') + ';'"></div>
+            <div class="accuracy-percent-badge" th:style="'left: ' + (${accuracyPercent < 8 ? 8 : (accuracyPercent > 92 ? 92 : accuracyPercent)}) + '%;'" th:text="${accuracyPercent + '%'}">40%</div>
+            <div class="accuracy-bar-red" th:style="'width: ' + ${100 - accuracyPercent} + '%; border-top-left-radius: ' + (${accuracyPercent == 0} ? '20px' : '0') + '; border-bottom-left-radius: ' + (${accuracyPercent == 0} ? '20px' : '0') + ';'"></div>
+        </div>
+    </div>
+
+    <!-- Performance Stats Card -->
+    <div class="dark-stat-card">
+        <div class="card-header-flex">
+            <h3 class="card-title">Performance Stats</h3>
+            <span class="total-q-badge" th:text="${result != null ? (result.totalQuestions + ' questions') : '0 questions'}">10 questions</span>
+        </div>
+        <div class="stats-pills-row">
+            <div class="stat-pill pill-correct">
+                <i class="bi bi-check-lg"></i> <span th:text="${result != null ? result.correctCount : 0}">4</span> Correct
+            </div>
+            <div class="stat-pill pill-incorrect">
+                <i class="bi bi-x-lg"></i> <span th:text="${result != null ? (result.totalQuestions - result.correctCount) : 0}">6</span> Incorrect
+            </div>
+        </div>
+    </div>
+
+    <div class="action-btns" style="margin-bottom: 2rem;">
+        <a th:if="${result != null}" th:href="@{/exams/{id}/take(id=${result.examId})}" class="btn btn-outline"><i class="bi bi-arrow-counterclockwise"></i> Thi lại bài này</a>
+        <a th:if="${result != null and result.id != null and result.id > 0}" th:href="@{/exams/result(resultId=${result.id})}" class="btn btn-outline"><i class="bi bi-file-earmark-text"></i> Xem chi tiết bài làm</a>
+        <a th:href="@{/}" class="btn btn-primary"><i class="bi bi-house"></i> Về trang chủ</a>
+    </div>
+
+    <!-- Xem lại chi tiết từng câu -->
+    <section class="review-section" th:if="${result != null and result.details != null and !#lists.isEmpty(result.details)}">
+        <div class="review-title">
+            <i class="bi bi-file-earmark-text-fill" style="color: #667eea;"></i> Chi tiết bài làm
+        </div>
+
+        <div class="question-box" th:each="det, dStat : ${result.details}" th:classappend="${det.isCorrect ? 'correct-border' : 'wrong-border'}">
+            <p style="font-weight: 600; font-size: 0.95rem; margin-bottom: 0.6rem;">
+                <span th:text="${'Câu ' + dStat.count + ': ' + det.questionContent}">Câu 1: ...</span>
+            </p>
+
+            <!-- Nếu câu trả lời Đúng -->
+            <div class="opt-review user-correct" th:if="${det.isCorrect}">
+                <span th:text="${det.selectedAnswerContent}">B. final</span>
+                <span><i class="bi bi-check-circle-fill"></i> Chọn đúng</span>
+            </div>
+
+            <!-- Nếu câu trả lời Sai / Chưa chọn -->
+            <th:block th:if="${!det.isCorrect}">
+                <div class="opt-review user-wrong">
+                    <span th:text="${det.selectedAnswerContent != null ? det.selectedAnswerContent : 'Chưa chọn câu trả lời'}">A. Java 7</span>
+                    <span><i class="bi bi-x-circle-fill"></i> Bạn đã chọn</span>
+                </div>
+                <div class="opt-review correct-target" th:if="${det.correctAnswerContent != null}">
+                    <span th:text="${det.correctAnswerContent}">B. Java 8</span>
+                    <span><i class="bi bi-check2"></i> Đáp án đúng</span>
+                </div>
+            </th:block>
+        </div>
+    </section>
+</main>
+
+</body>
+</html>
