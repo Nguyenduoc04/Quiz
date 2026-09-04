@@ -10,6 +10,10 @@ import com.codegym.Quiz.repository.QuestionRepository;
 import com.codegym.Quiz.service.ExamService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.codegym.Quiz.dto.ExamAnswerDTO;
+import com.codegym.Quiz.dto.ExamDetailDTO;
+import com.codegym.Quiz.dto.ExamQuestionDetailDTO;
+import com.codegym.Quiz.entity.Answer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -153,5 +157,76 @@ public class ExamServiceImpl implements ExamService {
     @Override
     public void removeQuestionFromExam(Long examId, Long questionId) {
         examQuestionRepository.deleteByExamIdAndQuestionId(examId, questionId);
+    }
+    @Override
+    @Transactional(readOnly = true)
+    public ExamDetailDTO getExamDetailForStudent(Long examId) {
+
+        Exam exam = examRepository.findById(examId)
+                .orElseThrow(() ->
+                        new RuntimeException("Không tìm thấy đề thi ID: " + examId));
+
+        // Chỉ cho học viên lấy đề đang ACTIVE
+        if (exam.getStatus() != ExamStatus.ACTIVE) {
+            throw new RuntimeException("Đề thi hiện không khả dụng");
+        }
+
+        List<ExamQuestion> examQuestions =
+                examQuestionRepository.findByExamIdOrderByQuestionOrderAsc(examId);
+
+        ExamDetailDTO examDTO = new ExamDetailDTO();
+
+        examDTO.setId(exam.getId());
+        examDTO.setTitle(exam.getTitle());
+        examDTO.setDescription(exam.getDescription());
+        examDTO.setDurationMinutes(exam.getDurationMinutes());
+        examDTO.setTotalScore(exam.getTotalScore());
+        examDTO.setPassingScore(exam.getPassingScore());
+        examDTO.setStatus(exam.getStatus());
+        examDTO.setTotalQuestions(examQuestions.size());
+
+        List<ExamQuestionDetailDTO> questionDTOs = new ArrayList<>();
+
+        for (ExamQuestion examQuestion : examQuestions) {
+
+            Question question = examQuestion.getQuestion();
+
+            ExamQuestionDetailDTO questionDTO =
+                    new ExamQuestionDetailDTO();
+
+            questionDTO.setId(question.getId());
+            questionDTO.setContent(question.getContent());
+            questionDTO.setQuestionType(question.getQuestionType());
+            questionDTO.setDifficultyLevel(question.getDifficultyLevel());
+            questionDTO.setQuestionOrder(examQuestion.getQuestionOrder());
+
+            Double score = examQuestion.getCustomScore() != null
+                    ? examQuestion.getCustomScore()
+                    : question.getScore();
+
+            questionDTO.setScore(score);
+
+            List<ExamAnswerDTO> answerDTOs = new ArrayList<>();
+
+            for (Answer answer : question.getAnswers()) {
+
+                ExamAnswerDTO answerDTO =
+                        new ExamAnswerDTO(
+                                answer.getId(),
+                                answer.getContent(),
+                                answer.getDisplayOrder()
+                        );
+
+                answerDTOs.add(answerDTO);
+            }
+
+            questionDTO.setAnswers(answerDTOs);
+
+            questionDTOs.add(questionDTO);
+        }
+
+        examDTO.setQuestions(questionDTOs);
+
+        return examDTO;
     }
 }
