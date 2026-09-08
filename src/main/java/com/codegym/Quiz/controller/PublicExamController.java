@@ -159,8 +159,10 @@ public class PublicExamController {
                 String cleanPin = pin.replace("-", "").trim();
                 OnlineExamController.recordParticipantResult(cleanPin, studentName, resultDTO.getScore(),
                         resultDTO.getCorrectCount(), resultDTO.getTotalQuestions());
+                Long resId = resultDTO.getId();
                 return "redirect:/user/online-result?pin=" + cleanPin + "&examId=" + examId + "&studentName="
-                        + java.net.URLEncoder.encode(studentName, java.nio.charset.StandardCharsets.UTF_8);
+                        + java.net.URLEncoder.encode(studentName, java.nio.charset.StandardCharsets.UTF_8)
+                        + (resId != null && resId > 0 ? "&resultId=" + resId : "");
             }
 
             if (currentUser == null || resultDTO.getId() == null || resultDTO.getId() == 0L) {

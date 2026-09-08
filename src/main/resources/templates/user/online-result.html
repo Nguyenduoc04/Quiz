@@ -60,7 +60,16 @@
         .btn-primary { background: #6366f1; color: white; }
         .btn-primary:hover { background: #4f46e5; }
         .btn-outline { background: white; border: 1px solid #cbd5e1; color: #475569; }
-        .btn-outline:hover { background: #f8fafc; }
+        /* REVIEW ANSWERS SECTION */
+        .review-card { background: white; border-radius: 20px; border: 1px solid #e2e8f0; padding: 1.8rem; margin-top: 2rem; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
+        .review-title { font-size: 1.2rem; font-weight: 800; color: #0f172a; margin-bottom: 1.2rem; display: flex; align-items: center; gap: 0.5rem; }
+        .question-box { border: 1px solid #e2e8f0; border-radius: 14px; padding: 1.2rem; margin-bottom: 1rem; }
+        .question-box.correct-border { border-left: 5px solid #22c55e; }
+        .question-box.wrong-border { border-left: 5px solid #ef4444; }
+        .opt-review { padding: 0.6rem 0.9rem; border-radius: 8px; margin-top: 0.5rem; font-size: 0.9rem; display: flex; justify-content: space-between; align-items: center; }
+        .opt-review.user-correct { background: #dcfce7; color: #15803d; font-weight: 600; }
+        .opt-review.user-wrong { background: #fee2e2; color: #b91c1c; font-weight: 600; }
+        .opt-review.correct-target { background: #f0fdf4; border: 1px dashed #22c55e; color: #15803d; }
     </style>
 </head>
 <body>
@@ -143,8 +152,41 @@
         </div>
 
         <div class="btn-group">
-            <a th:href="@{/exams/history}" class="btn-action btn-outline"><i class="bi bi-file-earmark-text"></i> Xem chi tiết bài làm</a>
+            <a th:if="${resultDetail != null and resultDetail.id != null and resultDetail.id > 0}" th:href="@{/exams/result(resultId=${resultDetail.id})}" class="btn-action btn-outline"><i class="bi bi-file-earmark-text"></i> Trang kết quả chi tiết</a>
+            <a th:if="${resultDetail == null}" th:href="@{/exams/history}" class="btn-action btn-outline"><i class="bi bi-file-earmark-text"></i> Xem lịch sử làm bài</a>
             <a th:href="@{/}" class="btn-action btn-primary"><i class="bi bi-house"></i> Về trang chủ</a>
+        </div>
+    </section>
+
+    <!-- Chi tiết đáp án bài làm (Hiển thị cho cả Thí sinh vãng lai và đã đăng nhập) -->
+    <section class="review-card" th:if="${resultDetail != null and resultDetail.details != null and !#lists.isEmpty(resultDetail.details)}">
+        <div class="review-title">
+            <i class="bi bi-file-earmark-check-fill" style="color: #6366f1;"></i> Chi Tiết Bài Làm Của Bạn
+        </div>
+
+        <div class="question-box" th:each="det, dStat : ${resultDetail.details}"
+             th:classappend="${det.isCorrect ? 'correct-border' : 'wrong-border'}">
+            <p style="font-weight: 700; font-size: 0.95rem; margin-bottom: 0.6rem; color: #1e293b;">
+                <span th:text="${'Câu ' + dStat.count + ': ' + det.questionContent}">Câu 1: ...</span>
+            </p>
+
+            <!-- Nếu chọn Đúng -->
+            <div class="opt-review user-correct" th:if="${det.isCorrect}">
+                <span th:text="${det.selectedAnswerContent}">B. Đáp án</span>
+                <span><i class="bi bi-check-circle-fill"></i> Bạn đã chọn chính xác</span>
+            </div>
+
+            <!-- Nếu chọn Sai hoặc chưa chọn -->
+            <th:block th:if="${!det.isCorrect}">
+                <div class="opt-review user-wrong">
+                    <span th:text="${det.selectedAnswerContent != null ? det.selectedAnswerContent : 'Chưa chọn câu trả lời'}">A. Đáp án đã chọn</span>
+                    <span><i class="bi bi-x-circle-fill"></i> Bạn đã chọn</span>
+                </div>
+                <div class="opt-review correct-target" th:if="${det.correctAnswerContent != null}">
+                    <span th:text="${det.correctAnswerContent}">B. Đáp án đúng</span>
+                    <span><i class="bi bi-check2"></i> Đáp án đúng chính xác</span>
+                </div>
+            </th:block>
         </div>
     </section>
 </main>

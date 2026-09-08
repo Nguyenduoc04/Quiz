@@ -2,11 +2,13 @@ package com.codegym.Quiz.controller;
 
 import com.codegym.Quiz.authentication.util.AuthenticationHelper;
 import com.codegym.Quiz.dto.ExamDetailDTO;
+import com.codegym.Quiz.dto.ExamResultDTO;
 import com.codegym.Quiz.entity.Exam;
 import com.codegym.Quiz.entity.ExamResult;
 import com.codegym.Quiz.entity.ExamStatus;
 import com.codegym.Quiz.entity.User;
 import com.codegym.Quiz.repository.ExamResultRepository;
+import com.codegym.Quiz.service.ExamResultService;
 import com.codegym.Quiz.service.ExamService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -23,6 +25,8 @@ public class OnlineExamController {
 
     private final ExamService examService;
     private final AuthenticationHelper authHelper;
+    private final ExamResultRepository examResultRepository;
+    private final ExamResultService examResultService;
 
     // In-memory thread-safe room store for online exam rooms
     private static final Map<String, OnlineRoom> roomStore = new ConcurrentHashMap<>();
@@ -57,6 +61,31 @@ public class OnlineExamController {
         public void setSubmitTime(String submitTime) { this.submitTime = submitTime; }
     }
 
+    public static class RoomNotification {
+        private String id;
+        private String type; // "JOIN", "LEAVE", "SUBMIT"
+        private String studentName;
+        private String message;
+        private String timestamp;
+        private long timeMillis;
+
+        public RoomNotification(String type, String studentName, String message) {
+            this.id = UUID.randomUUID().toString();
+            this.type = type;
+            this.studentName = studentName;
+            this.message = message;
+            this.timeMillis = System.currentTimeMillis();
+            this.timestamp = java.time.LocalTime.now().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss"));
+        }
+
+        public String getId() { return id; }
+        public String getType() { return type; }
+        public String getStudentName() { return studentName; }
+        public String getMessage() { return message; }
+        public String getTimestamp() { return timestamp; }
+        public long getTimeMillis() { return timeMillis; }
+    }
+
     public static class OnlineRoom {
         private String pin;
         private Long examId;
@@ -65,6 +94,9 @@ public class OnlineExamController {
         private Integer durationMinutes;
         private String status; // "WAITING", "IN_PROGRESS", "FINISHED"
         private List<String> participants = new CopyOnWriteArrayList<>();
+        private List<String> activeParticipants = new CopyOnWriteArrayList<>();
+        private List<String> leftParticipants = new CopyOnWriteArrayList<>();
+        private List<RoomNotification> notifications = new CopyOnWriteArrayList<>();
         private Map<String, ParticipantResult> results = new ConcurrentHashMap<>();
 
         public OnlineRoom(String pin, Long examId, String roomName, String teacherName, Integer durationMinutes) {
@@ -84,7 +116,18 @@ public class OnlineExamController {
         public String getStatus() { return status; }
         public void setStatus(String status) { this.status = status; }
         public List<String> getParticipants() { return participants; }
+        public List<String> getActiveParticipants() { return activeParticipants; }
+        public List<String> getLeftParticipants() { return leftParticipants; }
+        public List<RoomNotification> getNotifications() { return notifications; }
         public Map<String, ParticipantResult> getResults() { return results; }
+
+        public void addNotification(String type, String studentName, String message) {
+            RoomNotification notif = new RoomNotification(type, studentName, message);
+            notifications.add(notif);
+            if (notifications.size() > 100) {
+                notifications.remove(0);
+            }
+        }
 
         public void addParticipant(String name) {
             if (name != null && !name.isBlank()) {
@@ -93,18 +136,41 @@ public class OnlineExamController {
                 }
                 if (!participants.contains(name)) {
                     participants.add(name);
-                    results.putIfAbsent(name, new ParticipantResult(name));
+                }
+                if (!activeParticipants.contains(name)) {
+                    activeParticipants.add(name);
+                    leftParticipants.remove(name);
+                    addNotification("JOIN", name, "Thí sinh " + name + " đã vào phòng thi");
+                }
+                results.putIfAbsent(name, new ParticipantResult(name));
+            }
+        }
+
+        public void removeParticipant(String name) {
+            if (name != null && !name.isBlank()) {
+                if (activeParticipants.contains(name)) {
+                    activeParticipants.remove(name);
+                    if (!leftParticipants.contains(name)) {
+                        leftParticipants.add(name);
+                    }
+                    addNotification("LEAVE", name, "Thí sinh " + name + " đã rời phòng thi");
                 }
             }
         }
 
         public void recordResult(String studentName, double score, int correctCount, int totalQuestions) {
             ParticipantResult res = results.computeIfAbsent(studentName, ParticipantResult::new);
+            boolean isNewSubmit = !res.isSubmitted();
             res.setSubmitted(true);
             res.setScore(score);
             res.setCorrectCount(correctCount);
             res.setTotalQuestions(totalQuestions);
             res.setSubmitTime(java.time.LocalTime.now().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss")));
+
+            if (isNewSubmit) {
+                String scoreFormatted = String.format(Locale.US, "%.1f", score);
+                addNotification("SUBMIT", studentName, "Thí sinh " + studentName + " đã nộp bài (" + scoreFormatted + " điểm)");
+            }
         }
     }
 
@@ -116,8 +182,6 @@ public class OnlineExamController {
             room.recordResult(studentName, score, correctCount, totalQuestions);
         }
     }
-
-    private final ExamResultRepository examResultRepository;
 
     public static class LeaderboardItem {
         private int rank;
@@ -150,10 +214,11 @@ public class OnlineExamController {
         public boolean isIsMe() { return isMe; }
     }
 
-    public OnlineExamController(ExamService examService, AuthenticationHelper authHelper, ExamResultRepository examResultRepository) {
+    public OnlineExamController(ExamService examService, AuthenticationHelper authHelper, ExamResultRepository examResultRepository, ExamResultService examResultService) {
         this.examService = examService;
         this.authHelper = authHelper;
         this.examResultRepository = examResultRepository;
+        this.examResultService = examResultService;
     }
 
     /**
@@ -325,6 +390,59 @@ public class OnlineExamController {
     }
 
     /**
+     * API Thí sinh thông báo Rời khỏi phòng thi (Beacon / Form click)
+     */
+    @PostMapping("/api/room/leave")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> leaveRoom(
+            @RequestParam("pin") String pin,
+            @RequestParam(value = "studentName", required = false) String studentName) {
+        Map<String, Object> response = new HashMap<>();
+        if (pin != null && !pin.isBlank() && studentName != null && !studentName.isBlank()) {
+            String cleanPin = pin.replace("-", "").trim();
+            OnlineRoom room = roomStore.get(cleanPin);
+            if (room != null) {
+                room.removeParticipant(studentName);
+                response.put("success", true);
+                response.put("message", "Đã rời phòng thi thành công");
+                return ResponseEntity.ok(response);
+            }
+        }
+        response.put("success", false);
+        response.put("message", "Phòng thi không tồn tại hoặc thông tin không hợp lệ");
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * API Lấy danh sách Thông báo của phòng thi (Realtime polling)
+     */
+    @GetMapping("/api/room-notifications")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> getRoomNotifications(
+            @RequestParam("pin") String pin,
+            @RequestParam(value = "since", required = false, defaultValue = "0") Long since) {
+        String cleanPin = (pin != null) ? pin.replace("-", "").trim() : "";
+        OnlineRoom room = roomStore.get(cleanPin);
+        Map<String, Object> response = new HashMap<>();
+        if (room != null) {
+            List<RoomNotification> all = room.getNotifications();
+            List<RoomNotification> filtered = new ArrayList<>();
+            for (RoomNotification n : all) {
+                if (n.getTimeMillis() > since) {
+                    filtered.add(n);
+                }
+            }
+            response.put("notifications", filtered);
+            response.put("totalNotifications", all.size());
+            response.put("activeCount", room.getActiveParticipants().size());
+            response.put("leftCount", room.getLeftParticipants().size());
+        } else {
+            response.put("notifications", Collections.emptyList());
+        }
+        return ResponseEntity.ok(response);
+    }
+
+    /**
      * API kiểm tra trạng thái phòng thi (phục vụ Polling JS tại phòng chờ)
      */
     @GetMapping("/api/room-status")
@@ -337,6 +455,11 @@ public class OnlineExamController {
             response.put("status", room.getStatus());
             response.put("examId", room.getExamId());
             response.put("participantsCount", room.getParticipants().size());
+            response.put("activeCount", room.getActiveParticipants().size());
+            response.put("leftCount", room.getLeftParticipants().size());
+            response.put("activeParticipants", room.getActiveParticipants());
+            response.put("leftParticipants", room.getLeftParticipants());
+            response.put("notifications", room.getNotifications());
         } else {
             response.put("status", "WAITING");
             response.put("examId", 1L);
@@ -393,6 +516,11 @@ public class OnlineExamController {
             response.put("durationMinutes", room.getDurationMinutes());
             response.put("results", room.getResults().values());
             response.put("totalParticipants", room.getResults().size());
+            response.put("activeParticipants", room.getActiveParticipants());
+            response.put("leftParticipants", room.getLeftParticipants());
+            response.put("activeCount", room.getActiveParticipants().size());
+            response.put("leftCount", room.getLeftParticipants().size());
+            response.put("notifications", room.getNotifications());
 
             long submittedCount = room.getResults().values().stream().filter(ParticipantResult::isSubmitted).count();
             response.put("submittedCount", submittedCount);
@@ -406,13 +534,18 @@ public class OnlineExamController {
     /**
      * Giáo viên bấm "Kết thúc bài thi ngay"
      */
+    /**
+     * Giáo viên bấm "Kết thúc bài thi ngay"
+     */
     @PostMapping("/teacher/finish-online-exam")
     public String finishOnlineExam(@RequestParam("pin") String pin, RedirectAttributes redirectAttributes) {
         String cleanPin = (pin != null) ? pin.replace("-", "").trim() : "";
         OnlineRoom room = roomStore.get(cleanPin);
         if (room != null) {
             room.setStatus("FINISHED");
+            roomStore.remove(cleanPin);
         }
+        redirectAttributes.addFlashAttribute("successMessage", "Đã kết thúc phòng thi thành công! Mã PIN " + cleanPin + " đã bị hủy và không thể sử dụng để vào phòng nữa.");
         redirectAttributes.addAttribute("pin", cleanPin);
         return "redirect:/teacher/room-monitor";
     }
@@ -437,13 +570,18 @@ public class OnlineExamController {
         }
 
         try {
+            String cleanPin = (pin != null) ? pin.replace("-", "").trim() : "";
+            OnlineRoom room = roomStore.get(cleanPin);
+            if (room == null || "FINISHED".equalsIgnoreCase(room.getStatus())) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Mã phòng thi không tồn tại hoặc đã bị Giáo viên đóng/kết thúc!");
+                return "redirect:/user/join-room";
+            }
+
             ExamDetailDTO examDetail = examService.getExamDetailForStudent(examId);
             Optional<User> currentUserOpt = authHelper.getCurrentUser();
             String name = (studentName != null && !studentName.isBlank()) ? studentName
                     : currentUserOpt.map(u -> u.getFullName() != null ? u.getFullName() : u.getUsername()).orElse("Thí sinh");
 
-            String cleanPin = (pin != null) ? pin.replace("-", "").trim() : "";
-            OnlineRoom room = roomStore.get(cleanPin);
             List<String> participants = (room != null) ? room.getParticipants() : List.of(name);
             String roomName = (room != null) ? room.getRoomName() : examDetail.getTitle();
 
@@ -486,6 +624,7 @@ public class OnlineExamController {
             @RequestParam(value = "pin", required = false) String pin,
             @RequestParam(value = "examId", required = false) Long examId,
             @RequestParam(value = "studentName", required = false) String studentName,
+            @RequestParam(value = "resultId", required = false) Long resultId,
             Model model) {
 
         final Long targetExamId = examId;
@@ -501,6 +640,28 @@ public class OnlineExamController {
         String currentUserName = (studentName != null && !studentName.isBlank())
                 ? studentName
                 : currentUserOpt.map(u -> u.getFullName() != null ? u.getFullName() : u.getUsername()).orElse("");
+
+        // Tìm chi tiết bài làm để hiển thị câu đúng/sai cho thí sinh (kể cả khách vãng lai)
+        ExamResultDTO resultDetail = null;
+        if (resultId != null && resultId > 0) {
+            try {
+                resultDetail = examResultService.getResultById(resultId);
+            } catch (Exception ignored) {}
+        }
+        if (resultDetail == null && targetExamId != null && !currentUserName.isEmpty()) {
+            try {
+                List<ExamResult> dbResults = examResultRepository.findByExamIdOrderBySubmittedAtDesc(targetExamId);
+                for (ExamResult er : dbResults) {
+                    String uName = (er.getStudentName() != null && !er.getStudentName().isBlank())
+                            ? er.getStudentName()
+                            : (er.getUser() != null ? (er.getUser().getFullName() != null ? er.getUser().getFullName() : er.getUser().getUsername()) : "");
+                    if (uName.equalsIgnoreCase(currentUserName)) {
+                        resultDetail = examResultService.getResultById(er.getId());
+                        break;
+                    }
+                }
+            } catch (Exception ignored) {}
+        }
 
         List<LeaderboardItem> rankingList = new ArrayList<>();
         LeaderboardItem myResult = null;
@@ -550,9 +711,9 @@ public class OnlineExamController {
             List<ExamResult> dbResults = examResultRepository.findByExamIdOrderByScoreDescSubmittedAtAsc(examId);
             int rank = 1;
             for (ExamResult er : dbResults) {
-                String uName = (er.getUser() != null)
-                        ? (er.getUser().getFullName() != null ? er.getUser().getFullName() : er.getUser().getUsername())
-                        : "Thí sinh";
+                String uName = (er.getStudentName() != null && !er.getStudentName().isBlank())
+                        ? er.getStudentName()
+                        : (er.getUser() != null ? (er.getUser().getFullName() != null ? er.getUser().getFullName() : er.getUser().getUsername()) : "Thí sinh");
                 boolean isMe = !currentUserName.isEmpty() && uName.equalsIgnoreCase(currentUserName);
                 String subTime = (er.getSubmittedAt() != null)
                         ? er.getSubmittedAt().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss"))
@@ -587,6 +748,7 @@ public class OnlineExamController {
         model.addAttribute("rankingList", rankingList);
         model.addAttribute("myResult", myResult);
         model.addAttribute("myRank", myRank);
+        model.addAttribute("resultDetail", resultDetail);
 
         return "user/online-result";
     }
