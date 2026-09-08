@@ -62,6 +62,13 @@
                 <i class="bi bi-display"></i> Màn hình Giám sát
             </a>
         </div>
+
+        <!-- Nút dành cho Thí sinh để Rời phòng thi chủ động -->
+        <div th:if="${!isTeacher}" style="margin-top: 1.2rem; text-align: right;">
+            <button type="button" onclick="explicitLeaveRoom()" style="background:#ef4444; color:white; border:none; padding:0.5rem 1.2rem; border-radius:10px; font-weight:600; font-size:0.88rem; cursor:pointer; display:inline-flex; align-items:center; gap:0.4rem; transition: 0.2s;">
+                <i class="bi bi-box-arrow-right"></i> Rời phòng thi
+            </button>
+        </div>
     </section>
 
     <!-- Danh sách học viên trong phòng -->
@@ -84,23 +91,128 @@
     </section>
 </main>
 
+<!-- Toast Container cho Giáo viên -->
+<div id="toastContainer" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; max-width: 380px;"></div>
+
 <script th:inline="javascript">
     const pin = /*[[${pin}]]*/ '';
     const examId = /*[[${examId}]]*/ 1;
     const studentName = /*[[${studentName}]]*/ 'Thí sinh';
+    const isTeacher = /*[[${isTeacher}]]*/ false;
+
+    let seenNotificationIds = new Set();
+
+    function showToast(message, type = 'info') {
+        const toast = document.createElement('div');
+        const bgColor = type === 'JOIN' ? '#10b981' : (type === 'LEAVE' ? '#ef4444' : '#3b82f6');
+        const icon = type === 'JOIN' ? 'bi-person-plus-fill' : (type === 'LEAVE' ? 'bi-person-dash-fill' : 'bi-bell-fill');
+        
+        toast.style.cssText = `
+            background: ${bgColor}; color: white; padding: 12px 18px; border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 10px;
+            font-size: 0.9rem; font-weight: 600; animation: slideIn 0.3s ease-out; opacity: 0.95;
+        `;
+        toast.innerHTML = `<i class="bi ${icon}" style="font-size: 1.2rem;"></i> <span>${message}</span>`;
+        
+        const container = document.getElementById('toastContainer');
+        if (container) {
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.transition = 'all 0.4s ease';
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(10px)';
+                setTimeout(() => toast.remove(), 400);
+            }, 4000);
+        }
+    }
+
+    function explicitLeaveRoom() {
+        if (confirm('Bạn có chắc chắn muốn rời khỏi phòng thi này?')) {
+            const formData = new URLSearchParams();
+            formData.append('pin', pin);
+            formData.append('studentName', studentName);
+
+            fetch('/api/room/leave', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData
+            }).finally(() => {
+                window.location.href = '/user/join-room';
+            });
+        }
+    }
+
+    // Beacon khi thí sinh đóng tab hoặc thoát màn hình
+    let isNavigatingAway = false;
+    function sendLeaveBeacon() {
+        if (!pin || isTeacher || isNavigatingAway) return;
+        const data = new FormData();
+        data.append('pin', pin);
+        data.append('studentName', studentName);
+        navigator.sendBeacon('/api/room/leave', data);
+    }
+
+    window.addEventListener('beforeunload', sendLeaveBeacon);
+    window.addEventListener('pagehide', sendLeaveBeacon);
 
     if (pin) {
         setInterval(() => {
             fetch('/api/room-status?pin=' + pin)
                 .then(res => res.json())
                 .then(data => {
-                    if (data && data.status === 'IN_PROGRESS') {
+                    if (!data) return;
+
+                    // Nếu bài thi đã bắt đầu -> Chuyển hướng thí sinh
+                    if (data.status === 'IN_PROGRESS' && !isTeacher) {
+                        isNavigatingAway = true;
                         window.location.href = '/user/take-online?examId=' + (data.examId || examId) + '&pin=' + pin + '&studentName=' + encodeURIComponent(studentName);
+                        return;
+                    }
+
+                    // Cập nhật danh sách thí sinh trong phòng
+                    const activeParticipants = data.activeParticipants || [];
+                    const onlineCountEl = document.getElementById('onlineCount');
+                    if (onlineCountEl) {
+                        onlineCountEl.innerText = activeParticipants.length + ' Thí sinh';
+                    }
+
+                    const userGrid = document.getElementById('userGrid');
+                    if (userGrid) {
+                        let html = '';
+                        activeParticipants.forEach(p => {
+                            const isMe = p === studentName;
+                            const styleStr = isMe ? 'border-color: #667eea; background: #f0f4ff;' : '';
+                            const avatarLetter = p.length > 0 ? p.substring(0, 1).toUpperCase() : 'U';
+                            html += `
+                                <div class="user-card" style="${styleStr}">
+                                    <div class="user-avatar">${avatarLetter}</div>
+                                    <div class="user-name">${p}</div>
+                                </div>
+                            `;
+                        });
+                        userGrid.innerHTML = html;
+                    }
+
+                    // Nếu là Giáo viên -> Hiển thị Toast Notification thời gian thực khi có người vào/ra
+                    if (isTeacher && data.notifications) {
+                        data.notifications.forEach(n => {
+                            if (!seenNotificationIds.has(n.id)) {
+                                seenNotificationIds.add(n.id);
+                                showToast(n.message, n.type);
+                            }
+                        });
                     }
                 }).catch(() => {});
         }, 2000);
     }
 </script>
+
+<style>
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 0.95; }
+    }
+</style>
 
 </body>
 </html>

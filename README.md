@@ -12,7 +12,8 @@ Hệ thống ứng dụng trắc nghiệm trực tuyến được xây dựng tr
 - **ORM**: Spring Data JPA / Hibernate
 - **Template Engine**: Thymeleaf
 - **Build Tool**: Gradle
-
+- **Bootstrap**: Bootstrap 5.3.3
+- **Link presentation**: https://canva.link/s46tp3drs5vj1az
 ---
 
 ## 📁 Cấu trúc Thư mục Dự án

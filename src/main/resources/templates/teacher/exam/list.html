@@ -2,16 +2,70 @@
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản lý Đề Thi - Quiz CodeGym</title>
+    <!-- Bootstrap 5 CSS & Icons & Custom Design System -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; min-height: 100vh; }
-        .main-container { max-width: 1100px; margin: 2rem auto; padding: 0 1.5rem; }
-        .card-custom { background: white; border-radius: 16px; padding: 2rem; box-shadow: 0 4px 24px rgba(0, 0, 0, 0.07); border: none; }
-        .btn-gradient { background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 25px; font-weight: 500; }
-        .btn-gradient:hover { opacity: 0.9; color: white; }
+        .exam-list-card {
+            background: #ffffff;
+            border-radius: var(--radius-lg, 20px);
+            border: 1px solid var(--border-color, #e2e8f0);
+            box-shadow: var(--shadow-md, 0 4px 15px rgba(0,0,0,0.04));
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        .table-custom th {
+            background-color: #f8fafc;
+            color: #475569;
+            font-weight: 700;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .table-custom td {
+            padding: 1rem;
+            vertical-align: middle;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .badge-status {
+            padding: 0.35rem 0.75rem;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.78rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        .badge-draft { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+        .badge-pub { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+        .badge-active { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+        .badge-closed { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
+        .badge-inactive { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
+
+        .btn-action-sm {
+            padding: 0.38rem 0.85rem;
+            border-radius: 10px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            transition: 0.2s ease;
+        }
+        .btn-act-blue { background: #3b82f6; color: white; border: none; }
+        .btn-act-blue:hover { background: #2563eb; color: white; }
+        .btn-act-emerald { background: #10b981; color: white; border: none; }
+        .btn-act-emerald:hover { background: #059669; color: white; }
+        .btn-act-edit { background: #ffffff; color: #475569; border: 1px solid #cbd5e1; }
+        .btn-act-edit:hover { background: #f8fafc; color: #0f172a; }
+        .btn-act-del { background: #fee2e2; color: #ef4444; border: 1px solid #fca5a5; }
+        .btn-act-del:hover { background: #ef4444; color: white; }
     </style>
 </head>
 <body>
@@ -19,72 +73,81 @@
 <!-- Top Navbar -->
 <div th:replace="~{fragments/navbar :: navbar}"></div>
 
-<div class="main-container">
-    <div class="card-custom">
-        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+<main class="main-container py-4 flex-grow-1">
+    <div class="exam-list-card">
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
             <div>
-                <h2 class="fw-bold mb-1" style="color: #1a1a2e;">📝 Danh Sách Đề Thi</h2>
-                <p class="text-muted mb-0">Tạo mới và thiết lập danh sách câu hỏi cho đề thi</p>
+                <h1 class="h3 fw-bold mb-1" style="color: var(--text-main, #0f172a); display: flex; align-items: center; gap: 0.6rem;">
+                    <i class="bi bi-journal-text" style="color: var(--primary, #4f46e5);"></i> Quản Lý Danh Sách Đề Thi
+                </h1>
+                <p class="text-muted small mb-0">Tạo mới, chỉnh sửa đề thi và thiết lập phòng thi trực tuyến</p>
             </div>
-            <div class="d-flex gap-2">
-                <a th:href="@{/teacher/exams/results}" class="btn btn-outline-primary px-3 py-2 rounded-pill fw-semibold me-1">
-                    <i class="bi bi-clock-history me-1"></i> Lịch sử bài làm
+
+            <div class="d-flex gap-2 flex-wrap">
+                <a th:href="@{/teacher/exams/results}" class="btn-outline-custom">
+                    <i class="bi bi-clock-history"></i> Lịch sử bài làm
                 </a>
-                <a th:href="@{/teacher/exam/create-online-room}" class="btn btn-success px-3 py-2 text-white fw-semibold rounded-pill">
-                    <i class="bi bi-broadcast me-1"></i> 📡 Tổ chức thi Online
+                <a th:href="@{/teacher/exam/create-online-room}" class="btn-indigo" style="background: #10b981;">
+                    <i class="bi bi-broadcast"></i> 📡 Tổ chức thi Online
                 </a>
-                <a th:href="@{/teacher/exams/create}" class="btn btn-gradient px-4 py-2">
-                    <i class="bi bi-plus-lg me-1"></i> Tạo mới đề thi
+                <a th:href="@{/teacher/exams/create}" class="btn-indigo">
+                    <i class="bi bi-plus-lg"></i> Tạo mới đề thi
                 </a>
             </div>
         </div>
 
-        <div class="table-responsive">
-            <table class="table table-hover align-middle border-0">
-                <thead style="background-color: #f8f9fa;">
+        <div class="table-responsive-custom">
+            <table class="table table-custom align-middle mb-0">
+                <thead>
                 <tr>
-                    <th style="width: 50px;">ID</th>
+                    <th style="width: 60px;">ID</th>
                     <th>Thông tin đề thi</th>
                     <th>Thời gian</th>
                     <th>Trạng thái</th>
                     <th>Người tạo</th>
-                    <th style="width: 300px;" class="text-center">Thao tác</th>
+                    <th style="width: 320px;" class="text-center">Thao tác</th>
                 </tr>
                 </thead>
                 <tbody>
                 <tr th:each="exam : ${exams}">
-                    <td class="fw-bold" th:text="${'#' + exam.id}">#1</td>
+                    <td class="fw-bold" style="color: var(--primary, #4f46e5);" th:text="${'#' + exam.id}">#1</td>
                     <td>
                         <strong class="d-block text-dark" th:text="${exam.title}">Đề thi Java Core</strong>
                         <small class="text-muted" th:text="${exam.description}">Mô tả ngắn...</small>
                     </td>
-                    <td th:text="${exam.durationMinutes + ' phút'}">60 phút</td>
                     <td>
-                        <span th:if="${exam.status.name() == 'DRAFT'}" class="badge bg-warning text-dark">Bản nháp</span>
-                        <span th:if="${exam.status.name() == 'PUBLISHED'}" class="badge bg-info text-dark">Đã công bố</span>
-                        <span th:if="${exam.status.name() == 'ACTIVE'}" class="badge bg-success">Mở làm bài</span>
-                        <span th:if="${exam.status.name() == 'CLOSED'}" class="badge bg-secondary">Đã đóng</span>
-                        <span th:if="${exam.status.name() == 'INACTIVE'}" class="badge bg-danger">Tạm ngưng</span>
+                        <span class="fw-semibold" th:text="${exam.durationMinutes + ' phút'}">60 phút</span>
                     </td>
-                    <td th:text="${exam.createdBy != null ? (exam.createdBy.fullName != null ? exam.createdBy.fullName : exam.createdBy.username) : 'N/A'}">Teacher</td>
+                    <td>
+                        <span th:if="${exam.status.name() == 'DRAFT'}" class="badge-status badge-draft"><i class="bi bi-pencil"></i> Bản nháp</span>
+                        <span th:if="${exam.status.name() == 'PUBLISHED'}" class="badge-status badge-pub"><i class="bi bi-eye"></i> Đã công bố</span>
+                        <span th:if="${exam.status.name() == 'ACTIVE'}" class="badge-status badge-active"><i class="bi bi-play-circle"></i> Mở làm bài</span>
+                        <span th:if="${exam.status.name() == 'CLOSED'}" class="badge-status badge-closed"><i class="bi bi-lock"></i> Đã đóng</span>
+                        <span th:if="${exam.status.name() == 'INACTIVE'}" class="badge-status badge-inactive"><i class="bi bi-slash-circle"></i> Tạm ngưng</span>
+                    </td>
+                    <td>
+                        <span th:text="${exam.createdBy != null ? (exam.createdBy.fullName != null ? exam.createdBy.fullName : exam.createdBy.username) : 'N/A'}">Teacher</span>
+                    </td>
                     <td class="text-center">
-                        <a th:href="@{/teacher/exams/results(examId=${exam.id})}" class="btn btn-sm btn-info text-white me-1" title="Xem lịch sử nộp bài của thí sinh">
-                            <i class="bi bi-clock-history"></i> Kết quả
-                        </a>
-                        <a th:href="@{/teacher/exam/create-online-room(examId=${exam.id})}" class="btn btn-sm btn-success text-white me-1" title="Khởi tạo phòng thi Online ngay">
-                            <i class="bi bi-broadcast"></i> Thi Online
-                        </a>
-                        <a th:href="@{/teacher/exams/edit/{id}(id=${exam.id})}" class="btn btn-sm btn-light border me-1" title="Chỉnh sửa & Quản lý câu hỏi">
-                            <i class="bi bi-pencil text-warning me-1"></i> Sửa
-                        </a>
-                        <a th:href="@{/teacher/exams/delete/{id}(id=${exam.id})}" class="btn btn-sm btn-light border" title="Xóa" onclick="return confirm('Bạn có chắc chắn muốn xóa bài thi này?')">
-                            <i class="bi bi-trash text-danger"></i>
-                        </a>
+                        <div class="d-flex justify-content-center gap-1">
+                            <a th:href="@{/teacher/exams/results(examId=${exam.id})}" class="btn-action-sm btn-act-blue" title="Xem lịch sử nộp bài">
+                                <i class="bi bi-clock-history"></i> Kết quả
+                            </a>
+                            <a th:href="@{/teacher/exam/create-online-room(examId=${exam.id})}" class="btn-action-sm btn-act-emerald" title="Tổ chức thi Online">
+                                <i class="bi bi-broadcast"></i> Thi Online
+                            </a>
+                            <a th:href="@{/teacher/exams/edit/{id}(id=${exam.id})}" class="btn-action-sm btn-act-edit" title="Sửa đề thi">
+                                <i class="bi bi-pencil text-warning"></i> Sửa
+                            </a>
+                            <a th:href="@{/teacher/exams/delete/{id}(id=${exam.id})}" class="btn-action-sm btn-act-del" title="Xóa đề thi" onclick="return confirm('Bạn có chắc chắn muốn xóa bài thi này?')">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </div>
                     </td>
                 </tr>
                 <tr th:if="${#lists.isEmpty(exams)}">
                     <td colspan="6" class="text-center py-5 text-muted">
-                        <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                        <i class="bi bi-inbox fs-1 d-block mb-2" style="color: #cbd5e1;"></i>
                         Chưa có đề thi nào trong hệ thống.
                     </td>
                 </tr>
@@ -92,7 +155,7 @@
             </table>
         </div>
     </div>
-</div>
+</main>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>

@@ -250,6 +250,29 @@
             element.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
     }
+
+    // 5. Quản lý sự kiện rời phòng khi tắt tab / chuyển trang
+    const pin = /*[[${pin}]]*/ '';
+    const studentName = /*[[${studentName}]]*/ 'Thí sinh';
+    let isSubmitting = false;
+
+    const examForm = document.getElementById('onlineExamForm');
+    if (examForm) {
+        examForm.addEventListener('submit', () => {
+            isSubmitting = true;
+        });
+    }
+
+    function sendLeaveBeacon() {
+        if (!pin || isSubmitting) return;
+        const data = new FormData();
+        data.append('pin', pin);
+        data.append('studentName', studentName);
+        navigator.sendBeacon('/api/room/leave', data);
+    }
+
+    window.addEventListener('beforeunload', sendLeaveBeacon);
+    window.addEventListener('pagehide', sendLeaveBeacon);
 </script>
 </body>
 </html>

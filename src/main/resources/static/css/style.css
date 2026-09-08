@@ -1,6 +1,68 @@
+/* ==========================================
+   QUIZ CODEGYM - UNIFIED DESIGN SYSTEM
+   Configured according to DESIGN.md
+   ========================================== */
+
+:root {
+    /* Main Palette */
+    --primary: #4f46e5;
+    --primary-hover: #4338ca;
+    --primary-light: #e0e7ff;
+    --secondary: #7c3aed;
+    --secondary-hover: #6d28d9;
+    
+    /* Status Colors */
+    --success: #10b981;
+    --success-light: #dcfce7;
+    --warning: #f59e0b;
+    --warning-light: #fef3c7;
+    --danger: #ef4444;
+    --danger-light: #fee2e2;
+    --info: #0ea5e9;
+    --info-light: #e0f2fe;
+
+    /* Light Theme Surface */
+    --bg-main: #f0f4f8;
+    --bg-card: #ffffff;
+    --border-color: #e2e8f0;
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+
+    /* Dark Theme Surface */
+    --dark-bg-main: #0f172a;
+    --dark-bg-card: #1e293b;
+    --dark-border: #334155;
+    --dark-text-main: #f8fafc;
+    --dark-text-muted: #94a3b8;
+
+    /* Radii & Shadows */
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 20px;
+    --shadow-sm: 0 2px 8px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 15px rgba(0,0,0,0.05);
+    --shadow-lg: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+/* Base resets & typography */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, 'Roboto', 'Inter', sans-serif;
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
 /* Styling cho thông báo lỗi và thành công */
 .error {
-    color: #dc3545;
+    color: var(--danger);
     font-size: 0.875em;
     margin-top: 4px;
     display: block;
@@ -11,9 +73,9 @@
     font-weight: 500;
     margin-bottom: 15px;
     padding: 12px 15px;
-    background-color: #d1e7dd;
+    background-color: var(--success-light);
     border: 1px solid #badbcc;
-    border-radius: 6px;
+    border-radius: var(--radius-sm);
 }
 
 /* Styling cho form */
@@ -26,46 +88,94 @@
     margin-bottom: 6px;
     font-weight: 600;
     font-size: 0.9em;
-    color: #333;
+    color: var(--text-main);
 }
 
-.form-group input {
+.form-group input,
+.form-control-custom {
     width: 100%;
-    padding: 10px 12px;
+    padding: 10px 14px;
     box-sizing: border-box;
-    border: 1px solid #ced4da;
-    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
     font-size: 0.95em;
-    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* Hiệu ứng khi nhấp vào ô nhập liệu (Focus) */
-.form-group input:focus {
-    border-color: #86b7fe;
+.form-group input:focus,
+.form-control-custom:focus {
+    border-color: var(--primary);
     outline: 0;
-    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.18);
 }
 
-/* Viền đỏ cho Ô nhập liệu khi có lỗi */
 .form-group input.is-invalid,
 .form-group input.error-border {
-    border-color: #dc3545;
+    border-color: var(--danger);
 }
 
 .form-group input.is-invalid:focus {
-    box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25);
+    box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.2);
 }
 
-/* Style riêng cho ô chỉ đọc (readonly) */
 .input-readonly {
     background-color: #e9ecef !important;
     cursor: not-allowed;
-    color: #6c757d;
+    color: var(--text-muted);
 }
 
-/* 1. MICRO-ANIMATIONS (HIỆU ỨNG TƯƠNG TÁC NHỎ) */
+/* Common Card Style */
+.app-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 1.8rem;
+    box-shadow: var(--shadow-md);
+}
 
-/* Nâng thẻ / nút khi hover */
+/* Primary & Secondary Buttons */
+.btn-indigo {
+    background-color: var(--primary);
+    color: #ffffff;
+    border: none;
+    padding: 0.7rem 1.4rem;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    font-size: 0.92rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+}
+.btn-indigo:hover {
+    background-color: var(--primary-hover);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+}
+
+.btn-outline-custom {
+    background-color: #ffffff;
+    color: #475569;
+    border: 1px solid var(--border-color);
+    padding: 0.7rem 1.4rem;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    font-size: 0.92rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+}
+.btn-outline-custom:hover {
+    background-color: #f8fafc;
+    border-color: #cbd5e1;
+}
+
+/* Micro-animations */
 .hover-lift {
     transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
@@ -74,7 +184,6 @@
     box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.12) !important;
 }
 
-/* Nút bấm co giãn mượt khi click (Active state) */
 .btn-pop {
     transition: transform 0.15s ease, background-color 0.2s ease;
 }
@@ -82,7 +191,6 @@
     transform: scale(0.96);
 }
 
-/* Hiệu ứng Rung lắc khi nhập sai (Shake Error) */
 @keyframes shakeError {
     0%, 100% { transform: translateX(0); }
     20%, 60% { transform: translateX(-6px); }
@@ -90,10 +198,9 @@
 }
 .shake-shake {
     animation: shakeError 0.4s ease-in-out;
-    border-color: #ef4444 !important;
+    border-color: var(--danger) !important;
 }
 
-/* Hiệu ứng Modal / Popup xuất hiện nảy nhẹ (Pop In) */
 @keyframes popIn {
     0% { opacity: 0; transform: scale(0.92) translateY(10px); }
     100% { opacity: 1; transform: scale(1) translateY(0); }
@@ -102,7 +209,7 @@
     animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
-/* Skeleton Loading cho danh sách / dữ liệu đang tải */
+/* Skeleton Loading */
 @keyframes shimmer {
     0% { background-position: -200% 0; }
     100% { background-position: 200% 0; }
@@ -111,46 +218,27 @@
     background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 37%, #f1f5f9 63%);
     background-size: 200% 100%;
     animation: shimmer 1.4s infinite ease-in-out;
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
 }
 
-/* Glow ring khi focus vào ô nhập liệu */
-.input-glow {
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-.input-glow:focus {
-    border-color: #6366f1 !important;
-    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.18) !important;
-}
-
-
-/* 2. RESPONSIVE TWEAKS (TỐI ƯU GIAO DIỆN DI ĐỘNG & MÁY TÍNH BẢNG) */
-
-/* Cuộn ngang mượt cho Bảng dữ liệu trên Mobile */
+/* Responsive tweaks */
 .table-responsive-custom {
     width: 100%;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-    border-radius: 12px;
+    border-radius: var(--radius-md);
 }
 
-/* Breakpoint: Điện thoại di động (max-width: 576px) */
 @media (max-width: 576px) {
-    /* Thu nhỏ padding các khung chứa chính */
     .main-container, .join-card, .room-card, .lb-card {
         padding: 1.25rem !important;
     }
-
-    /* Thu nhỏ font chữ tiêu đề trên mobile */
     .room-title, .join-title {
         font-size: 1.2rem !important;
     }
-
     .big-score {
         font-size: 2.2rem !important;
     }
-
-    /* Chuyển các nhóm nút bấm từ hàng ngang thành hàng dọc */
     .btn-group, .stat-pills {
         flex-direction: column !important;
         width: 100%;
@@ -160,24 +248,19 @@
         justify-content: center;
         text-align: center;
     }
-
-    /* Bảng xếp hạng thu gọn trên màn hình nhỏ */
     .lb-row {
         grid-template-columns: 36px 1fr 70px !important;
         font-size: 0.85rem !important;
         padding: 0.75rem !important;
     }
     .lb-row .time-val {
-        display: none; /* Ẩn thời gian làm bài trên mobile để giảm chật chội */
+        display: none;
     }
-
-    /* Grid câu hỏi rút gọn còn 4 cột trên di động */
     .palette-grid {
         grid-template-columns: repeat(4, 1fr) !important;
     }
 }
 
-/* Breakpoint: Tablet (max-width: 768px) */
 @media (max-width: 768px) {
     .exam-layout {
         grid-template-columns: 1fr !important;

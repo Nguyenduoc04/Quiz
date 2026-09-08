@@ -43,11 +43,17 @@
             justify-content: center; font-size: 1.5rem;
         }
         .icon-blue { background: rgba(99, 102, 241, 0.15); color: #818cf8; }
+        .icon-emerald { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+        .icon-rose { background: rgba(244, 63, 94, 0.15); color: #fb7185; }
         .icon-green { background: rgba(34, 197, 94, 0.15); color: #4ade80; }
         .icon-purple { background: rgba(168, 85, 247, 0.15); color: #c084fc; }
 
         .stat-value { font-size: 1.6rem; font-weight: 800; color: #ffffff; line-height: 1.1; }
         .stat-label { font-size: 0.85rem; color: #94a3b8; margin-top: 0.2rem; }
+
+        /* ACTIVITY LOG & TABLE GRID */
+        .content-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-bottom: 2rem; }
+        @media (max-width: 992px) { .content-grid { grid-template-columns: 1fr; } }
 
         /* TABLE CONTAINER */
         .table-card {
@@ -64,10 +70,30 @@
 
         .badge-sub { padding: 0.35rem 0.8rem; border-radius: 12px; font-weight: 700; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 0.4rem; }
         .badge-done { background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.4); }
-        .badge-doing { background: rgba(234, 179, 8, 0.2); color: #facc15; border: 1px solid rgba(234, 179, 8, 0.4); }
+        .badge-online { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.4); }
+        .badge-left { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); }
 
         .progress-mini { width: 100px; height: 8px; background: #334155; border-radius: 10px; overflow: hidden; display: flex; }
         .progress-bar-green { background: #4ade80; height: 100%; }
+
+        /* ACTIVITY FEED CARD */
+        .activity-card {
+            background: #1e293b; border: 1px solid #334155; border-radius: 20px;
+            padding: 1.5rem; box-shadow: 0 10px 30px rgba(0,0,0,0.3); display: flex; flex-direction: column; max-height: 520px;
+        }
+        .activity-title { font-size: 1.1rem; font-weight: 700; color: #ffffff; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.6rem; }
+        .activity-list { overflow-y: auto; display: flex; flex-direction: column; gap: 0.8rem; flex: 1; padding-right: 0.4rem; }
+        .activity-item {
+            background: #0f172a; border: 1px solid #334155; border-radius: 12px; padding: 0.8rem 1rem;
+            display: flex; align-items: center; gap: 0.8rem; font-size: 0.85rem; transition: 0.2s;
+        }
+        .activity-icon {
+            width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 1rem;
+        }
+        .act-join { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+        .act-leave { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+        .act-submit { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+        .activity-time { font-size: 0.75rem; color: #64748b; margin-left: auto; }
 
         .btn-end {
             background: #ef4444; color: white; border: none; padding: 0.6rem 1.2rem;
@@ -81,6 +107,11 @@
             display: inline-flex; align-items: center; gap: 0.5rem; transition: 0.2s;
         }
         .btn-leaderboard:hover { background: #2563eb; }
+
+        @keyframes toastSlide {
+            from { transform: translateX(120%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
     </style>
 </head>
 <body>
@@ -130,6 +161,20 @@
             </div>
         </div>
         <div class="stat-card">
+            <div class="stat-icon icon-emerald"><i class="bi bi-wifi"></i></div>
+            <div>
+                <div class="stat-value" id="statActive" style="color: #34d399;">0</div>
+                <div class="stat-label">Đang trong phòng</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon icon-rose"><i class="bi bi-person-x-fill"></i></div>
+            <div>
+                <div class="stat-value" id="statLeft" style="color: #fb7185;">0</div>
+                <div class="stat-label">Đã rời phòng</div>
+            </div>
+        </div>
+        <div class="stat-card">
             <div class="stat-icon icon-green"><i class="bi bi-check-all"></i></div>
             <div>
                 <div class="stat-value" id="statSubmitted">0</div>
@@ -145,70 +190,113 @@
         </div>
     </div>
 
-    <!-- Bảng kết quả Realtime -->
-    <div class="table-card">
-        <div class="table-header">
-            <h2 class="table-title">
-                <i class="bi bi-activity" style="color: #60a5fa;"></i> Tiến độ & Điểm số Thí sinh Realtime
-            </h2>
-            <span style="font-size: 0.85rem; color: #94a3b8;">
-                <i class="bi bi-arrow-repeat spin"></i> Tự động cập nhật mỗi 2 giây
-            </span>
+    <!-- Layout Grid: Bảng tiến độ & Nhật ký hoạt động Realtime -->
+    <div class="content-grid">
+        <!-- Bảng kết quả Realtime -->
+        <div class="table-card">
+            <div class="table-header">
+                <h2 class="table-title">
+                    <i class="bi bi-activity" style="color: #60a5fa;"></i> Tiến độ & Điểm số Thí sinh Realtime
+                </h2>
+                <span style="font-size: 0.85rem; color: #94a3b8;">
+                    <i class="bi bi-arrow-repeat spin"></i> Tự động cập nhật 2s
+                </span>
+            </div>
+
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th style="width: 50px;">#</th>
+                        <th>Tên thí sinh</th>
+                        <th>Trạng thái</th>
+                        <th>Số câu đúng</th>
+                        <th>Điểm số</th>
+                        <th>Tỷ lệ chính xác</th>
+                        <th>Thời gian nộp</th>
+                    </tr>
+                </thead>
+                <tbody id="studentResultsBody">
+                    <tr th:each="res, rStat : ${results}">
+                        <td th:text="${rStat.count}">1</td>
+                        <td>
+                            <strong th:text="${res.studentName}">Nguyễn Văn A</strong>
+                        </td>
+                        <td>
+                            <span th:if="${res.submitted}" class="badge-sub badge-done">
+                                <i class="bi bi-check-circle-fill"></i> Đã nộp bài
+                            </span>
+                            <span th:if="${!res.submitted}" class="badge-sub badge-online">
+                                <i class="bi bi-clock-history"></i> Đang làm bài...
+                            </span>
+                        </td>
+                        <td>
+                            <span th:text="${res.submitted ? (res.correctCount + ' / ' + res.totalQuestions) : '-'}">18 / 20</span>
+                        </td>
+                        <td>
+                            <strong th:text="${res.submitted ? #numbers.formatDecimal(res.score, 1, 1) : '-'}" style="color: #4ade80; font-size: 1.1rem;">9.0</strong>
+                        </td>
+                        <td>
+                            <div class="progress-mini" th:if="${res.submitted}">
+                                <div class="progress-bar-green" th:style="'width: ' + ${(res.totalQuestions > 0 ? (res.correctCount * 100 / res.totalQuestions) : 0)} + '%;'"></div>
+                            </div>
+                            <span th:if="${!res.submitted}" style="color: #64748b;">-</span>
+                        </td>
+                        <td th:text="${res.submitTime}">18:30:15</td>
+                    </tr>
+                    <tr th:if="${results == null or #lists.isEmpty(results)}">
+                        <td colspan="7" style="text-align: center; color: #64748b; padding: 2rem;">
+                            Chưa có thí sinh nào tham gia phòng thi này.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
 
-        <table class="custom-table">
-            <thead>
-                <tr>
-                    <th style="width: 60px;">#</th>
-                    <th>Tên thí sinh</th>
-                    <th>Trạng thái</th>
-                    <th>Số câu đúng</th>
-                    <th>Điểm số</th>
-                    <th>Tỷ lệ chính xác</th>
-                    <th>Thời gian nộp</th>
-                </tr>
-            </thead>
-            <tbody id="studentResultsBody">
-                <tr th:each="res, rStat : ${results}">
-                    <td th:text="${rStat.count}">1</td>
-                    <td>
-                        <strong th:text="${res.studentName}">Nguyễn Văn A</strong>
-                    </td>
-                    <td>
-                        <span th:if="${res.submitted}" class="badge-sub badge-done">
-                            <i class="bi bi-check-circle-fill"></i> Đã nộp bài
-                        </span>
-                        <span th:if="${!res.submitted}" class="badge-sub badge-doing">
-                            <i class="bi bi-clock-history"></i> Đang làm bài...
-                        </span>
-                    </td>
-                    <td>
-                        <span th:text="${res.submitted ? (res.correctCount + ' / ' + res.totalQuestions) : '-'}">18 / 20</span>
-                    </td>
-                    <td>
-                        <strong th:text="${res.submitted ? #numbers.formatDecimal(res.score, 1, 1) : '-'}" style="color: #4ade80; font-size: 1.1rem;">9.0</strong>
-                    </td>
-                    <td>
-                        <div class="progress-mini" th:if="${res.submitted}">
-                            <div class="progress-bar-green" th:style="'width: ' + ${(res.totalQuestions > 0 ? (res.correctCount * 100 / res.totalQuestions) : 0)} + '%;'"></div>
-                        </div>
-                        <span th:if="${!res.submitted}" style="color: #64748b;">-</span>
-                    </td>
-                    <td th:text="${res.submitTime}">18:30:15</td>
-                </tr>
-                <tr th:if="${results == null or #lists.isEmpty(results)}">
-                    <td colspan="7" style="text-align: center; color: #64748b; padding: 2rem;">
-                        Chưa có thí sinh nào tham gia phòng thi này.
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+        <!-- Nhật ký hoạt động Realtime -->
+        <div class="activity-card">
+            <div class="activity-title">
+                <i class="bi bi-bell-fill" style="color: #f59e0b;"></i> Nhật ký hoạt động
+            </div>
+            <div class="activity-list" id="activityFeed">
+                <div style="text-align: center; color: #64748b; padding: 2rem; font-size: 0.85rem;">
+                    Đang chờ các sự kiện phòng thi...
+                </div>
+            </div>
+        </div>
     </div>
 
 </main>
 
+<!-- Toast Container cho Giáo viên -->
+<div id="toastContainer" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; max-width: 380px;"></div>
+
 <script th:inline="javascript">
     const pin = /*[[${pin}]]*/ '';
+    let seenNotificationIds = new Set();
+
+    function showNotificationToast(msg, type) {
+        const toast = document.createElement('div');
+        const bg = type === 'JOIN' ? '#10b981' : (type === 'LEAVE' ? '#ef4444' : '#3b82f6');
+        const icon = type === 'JOIN' ? 'bi-person-plus-fill' : (type === 'LEAVE' ? 'bi-person-dash-fill' : 'bi-check2-circle');
+
+        toast.style.cssText = `
+            background: ${bg}; color: white; padding: 14px 18px; border-radius: 14px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3); display: flex; align-items: center; gap: 12px;
+            font-size: 0.92rem; font-weight: 600; animation: toastSlide 0.3s ease-out; opacity: 0.95;
+        `;
+        toast.innerHTML = `<i class="bi ${icon}" style="font-size: 1.3rem;"></i> <span>${msg}</span>`;
+
+        const container = document.getElementById('toastContainer');
+        if (container) {
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.transition = 'all 0.4s ease';
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(10px)';
+                setTimeout(() => toast.remove(), 400);
+            }, 4500);
+        }
+    }
 
     function fetchMonitorData() {
         if (!pin) return;
@@ -218,7 +306,13 @@
                 if (data.status === 'NOT_FOUND') return;
 
                 const results = data.results || [];
+                const activeParticipants = data.activeParticipants || [];
+                const leftParticipants = data.leftParticipants || [];
+                const notifications = data.notifications || [];
+
                 document.getElementById('statTotal').innerText = data.totalParticipants || 0;
+                document.getElementById('statActive').innerText = data.activeCount || activeParticipants.length || 0;
+                document.getElementById('statLeft').innerText = data.leftCount || leftParticipants.length || 0;
                 document.getElementById('statSubmitted').innerText = data.submittedCount || 0;
 
                 let sumScore = 0;
@@ -236,36 +330,84 @@
                 const tbody = document.getElementById('studentResultsBody');
                 if (results.length === 0) {
                     tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #64748b; padding: 2rem;">Chưa có thí sinh nào tham gia phòng thi này.</td></tr>`;
-                    return;
+                } else {
+                    let html = '';
+                    results.forEach((r, idx) => {
+                        let statusBadge = '';
+                        if (r.submitted) {
+                            statusBadge = `<span class="badge-sub badge-done"><i class="bi bi-check-circle-fill"></i> Đã nộp bài</span>`;
+                        } else if (activeParticipants.includes(r.studentName)) {
+                            statusBadge = `<span class="badge-sub badge-online"><i class="bi bi-wifi"></i> Đang trong phòng</span>`;
+                        } else if (leftParticipants.includes(r.studentName)) {
+                            statusBadge = `<span class="badge-sub badge-left"><i class="bi bi-person-exclamation"></i> Đã rời phòng</span>`;
+                        } else {
+                            statusBadge = `<span class="badge-sub badge-online"><i class="bi bi-clock-history"></i> Đang làm bài...</span>`;
+                        }
+
+                        const correctText = r.submitted ? `${r.correctCount} / ${r.totalQuestions}` : '-';
+                        const scoreText = r.submitted ? `<strong style="color: #4ade80; font-size: 1.1rem;">${r.score.toFixed(1)}</strong>` : '-';
+
+                        const percent = (r.submitted && r.totalQuestions > 0) ? Math.round(r.correctCount * 100 / r.totalQuestions) : 0;
+                        const progressHtml = r.submitted
+                            ? `<div class="progress-mini"><div class="progress-bar-green" style="width: ${percent}%;"></div></div>`
+                            : `<span style="color: #64748b;">-</span>`;
+
+                        html += `
+                            <tr>
+                                <td>${idx + 1}</td>
+                                <td><strong>${r.studentName}</strong></td>
+                                <td>${statusBadge}</td>
+                                <td>${correctText}</td>
+                                <td>${scoreText}</td>
+                                <td>${progressHtml}</td>
+                                <td>${r.submitTime || '-'}</td>
+                            </tr>
+                        `;
+                    });
+                    tbody.innerHTML = html;
                 }
 
-                let html = '';
-                results.forEach((r, idx) => {
-                    const statusBadge = r.submitted
-                        ? `<span class="badge-sub badge-done"><i class="bi bi-check-circle-fill"></i> Đã nộp bài</span>`
-                        : `<span class="badge-sub badge-doing"><i class="bi bi-clock-history"></i> Đang làm bài...</span>`;
+                // Update Activity Feed & Fire Toasts
+                const feedEl = document.getElementById('activityFeed');
+                if (feedEl && notifications.length > 0) {
+                    let feedHtml = '';
+                    // Reversing to show latest notification first
+                    const reversedNotifs = [...notifications].reverse();
 
-                    const correctText = r.submitted ? `${r.correctCount} / ${r.totalQuestions}` : '-';
-                    const scoreText = r.submitted ? `<strong style="color: #4ade80; font-size: 1.1rem;">${r.score.toFixed(1)}</strong>` : '-';
+                    reversedNotifs.forEach(n => {
+                        // Toast alert trigger
+                        if (!seenNotificationIds.has(n.id)) {
+                            seenNotificationIds.add(n.id);
+                            showNotificationToast(n.message, n.type);
+                        }
 
-                    const percent = (r.submitted && r.totalQuestions > 0) ? Math.round(r.correctCount * 100 / r.totalQuestions) : 0;
-                    const progressHtml = r.submitted
-                        ? `<div class="progress-mini"><div class="progress-bar-green" style="width: ${percent}%;"></div></div>`
-                        : `<span style="color: #64748b;">-</span>`;
+                        let iconClass = 'bi-info-circle';
+                        let actClass = 'act-submit';
+                        if (n.type === 'JOIN') {
+                            iconClass = 'bi-person-plus-fill';
+                            actClass = 'act-join';
+                        } else if (n.type === 'LEAVE') {
+                            iconClass = 'bi-person-dash-fill';
+                            actClass = 'act-leave';
+                        } else if (n.type === 'SUBMIT') {
+                            iconClass = 'bi-check2-circle';
+                            actClass = 'act-submit';
+                        }
 
-                    html += `
-                        <tr>
-                            <td>${idx + 1}</td>
-                            <td><strong>${r.studentName}</strong></td>
-                            <td>${statusBadge}</td>
-                            <td>${correctText}</td>
-                            <td>${scoreText}</td>
-                            <td>${progressHtml}</td>
-                            <td>${r.submitTime || '-'}</td>
-                        </tr>
-                    `;
-                });
-                tbody.innerHTML = html;
+                        feedHtml += `
+                            <div class="activity-item">
+                                <div class="activity-icon ${actClass}">
+                                    <i class="bi ${iconClass}"></i>
+                                </div>
+                                <div style="color: #e2e8f0; font-weight: 500;">${n.message}</div>
+                                <div class="activity-time">${n.timestamp || ''}</div>
+                            </div>
+                        `;
+                    });
+                    feedEl.innerHTML = feedHtml;
+                } else if (feedEl && notifications.length === 0) {
+                    feedEl.innerHTML = `<div style="text-align: center; color: #64748b; padding: 2rem; font-size: 0.85rem;">Chưa có hoạt động nào được ghi nhận.</div>`;
+                }
             })
             .catch(err => console.error("Error updating monitor data:", err));
     }
